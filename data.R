@@ -15,12 +15,13 @@ DAX.symb <- c("PSM.DE", "DPW.DE", "MRK.DE", "DTE.DE",
               "LIN.DE", "FME.DE", "TKA.DE", "LHA.DE",
               "BAS.DE", "HEI.DE")
 
-if (!file.exists("DAX_full_dataset.RDS")) {
+data.file <- "data/DAX_full_dataset.RDS"
+if (!file.exists(data.file)) {
   DAX.env <- new.env()
   getSymbols(DAX.symb, src = "yahoo", env = DAX.env, verbose = T, from = start)
   saveRDS(DAX.env, file = "DAX_full_dataset.RDS")
 } else {
-  DAX.env <- readRDS("DAX_full_dataset.RDS")
+  DAX.env <- readRDS(data.file)
 }
 
 DAX.symb.chosen <- c()
@@ -60,6 +61,20 @@ DAX.chunks <- list()
 for (ii in DAX.chunk.indices) {
   DAX.chunks[[substr(ii, 1, 4)]] <- DAX.log.returns[ii, ]
 }
+
+set.seed(42)
+DAX.symb.chosen <- sample(DAX.symb.chosen, size = 4, replace = F)
+data.chunks <- list()
+for (symb in DAX.symb.chosen) {
+  data.chunks[[symb]] <- lapply(DAX.chunks,
+                                function (chunk, symb) chunk[1:30, symb],
+                                symb)
+}
+
+# clean workspace
+rm(DAX.chunks, DAX.env, DAX.log.returns, DAX.data)
+
+## Table of DAX companies as of 2017-06-10 from Yahoo! Finance
 
 #Symbol    Company name    Last price    Change    % change    Volume        
 #PSM.DE   ProSiebenSat.1 Media SE  36.91  -0.04   -0.11%   907,782     
