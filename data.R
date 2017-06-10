@@ -2,8 +2,8 @@ library("zoo")
 library("xts")
 library("quantmod")
 
-start <- as.Date("1995-01-02")
-end <- as.Date("2016-12-30")
+start <- as.Date("2000-01-03")
+end <- as.Date("2015-12-31")
 
 # DAX symbols
 DAX.symb <- c("PSM.DE", "DPW.DE", "MRK.DE", "DTE.DE",
@@ -15,16 +15,51 @@ DAX.symb <- c("PSM.DE", "DPW.DE", "MRK.DE", "DTE.DE",
               "LIN.DE", "FME.DE", "TKA.DE", "LHA.DE",
               "BAS.DE", "HEI.DE")
 
-DAX.env <- new.env()
-getSymbols(DAX.symb, src = "yahoo", env = DAX.env, verbose = T, from = start, to = end)
+if (!file.exists("DAX_full_dataset.RDS")) {
+  DAX.env <- new.env()
+  getSymbols(DAX.symb, src = "yahoo", env = DAX.env, verbose = T, from = start)
+  saveRDS(DAX.env, file = "DAX_full_dataset.RDS")
+} else {
+  DAX.env <- readRDS("DAX_full_dataset.RDS")
+}
+
+DAX.symb.chosen <- c()
+cat("Symbol  \t Start          End       \t Chosen/Omitted")
+for (symb in DAX.symb) {
+  date.range <- index(get(symb, envir = DAX.env))
+  is.chosen <- date.range[1] <= start
+  if (is.chosen)
+    DAX.symb.chosen <- c(DAX.symb.chosen, symb)
+  cat(symb, " \t", as.character(date.range[1]), " - ",
+      as.character(date.range[length(date.range)]),
+      "\t", ifelse(is.chosen, "CHOSEN", "OMITTED"), "\n")
+}
 
 DAX.data <- xts()
-for (symb in DAX.symb) {
-  DAX.data <- merge.xts(DAX.data, get(symb, envir = DAX.env)[, paste0(symb, ".Close")], join = "outer")
+for (symb in DAX.symb.chosen) {
+  DAX.data <- merge.xts(DAX.data,
+                        get(symb, envir = DAX.env)[paste0("/", as.character(end)),
+                                                   paste0(symb, ".Close")],
+                        join = "outer")
 }
-colnames(DAX.data) <- DAX.symb
+colnames(DAX.data) <- DAX.symb.chosen
 
-saveRDS(DAX.data, file = "DAX_data.RDS")
+# delete rows with NA or zero, there aren't many
+DAX.data <- DAX.data[index(DAX.data)[rowSums(is.na(DAX.data) | (DAX.data == 0)) == 0], ]
+
+DAX.log.returns <- diff(log(DAX.data))[-1]
+
+# create data chunks of 4 years with an overlap of 1 year
+DAX.chunk.indices <- c()
+for (start.year in seq(from = 2000, to = 2012, by = 3)) {
+  DAX.chunk.indices <- c(DAX.chunk.indices,
+                         paste0(start.year, "-01-01/", start.year+3, "-12-31"))
+}
+
+DAX.chunks <- list()
+for (ii in DAX.chunk.indices) {
+  DAX.chunks[[substr(ii, 1, 4)]] <- DAX.log.returns[ii, ]
+}
 
 #Symbol    Company name    Last price    Change    % change    Volume        
 #PSM.DE   ProSiebenSat.1 Media SE  36.91  -0.04   -0.11%   907,782     
