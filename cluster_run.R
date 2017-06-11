@@ -39,25 +39,26 @@ for (phii in seq_len(nrow(phi.grid))) {
 
 nsim <- 200
 initials <- list(phi = 0.6, sigma2 = 0.01, rho = -0.4, mu = -9)
-runner <- function (chunk, n, initials, hyperparamgrid) {
+runner <- function (chunk, n, initials, hyperparam.grid) {
   result <- list()
-  for (i in seq_len(dim(hyperparamgrid)[1])) {
+  for (i in seq_len(dim(hyperparam.grid)[1])) {
     subresult <- list()
     priors <- list(
-      phi.a = hyperparamgrid[i, 1, 1],
-      phi.b = hyperparamgrid[i, 1, 2],
-      sigma2.shape = hyperparamgrid[i, 2, 1],
-      sigma2.rate = hyperparamgrid[i, 2, 2],
-      rho.a = hyperparamgrid[i, 3, 1],
-      rho.b = hyperparamgrid[i, 3, 2],
-      mu.mean = hyperparamgrid[i, 4, 1],
-      mu.var = hyperparamgrid[i, 4, 2]
+      phi.a = hyperparam.grid[i, 1, 1],
+      phi.b = hyperparam.grid[i, 1, 2],
+      sigma2.shape = hyperparam.grid[i, 2, 1],
+      sigma2.rate = hyperparam.grid[i, 2, 2],
+      rho.a = hyperparam.grid[i, 3, 1],
+      rho.b = hyperparam.grid[i, 3, 2],
+      mu.mean = hyperparam.grid[i, 4, 1],
+      mu.var = hyperparam.grid[i, 4, 2]
     )
     subresult[["priors"]] <- priors
     subresult[["initials"]] <- initials
+    subresult[["data"]] <- chunk
     years <- lapply(chunk,
                     function (x, n, priors, initials) {
-                      res <- fnMCMCSampler(x, n, priors, initials, iBurnin = n %/% 10)
+                      res <- fnMCMCSampler(x - mean(x), n, priors, initials, iBurnin = n %/% 10)
                       res[["dates"]] <- index(x)
                       return(res)
                     },
