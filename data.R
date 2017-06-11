@@ -52,7 +52,7 @@ DAX.log.returns <- diff(log(DAX.data))[-1]
 
 # create data chunks of 4 years with an overlap of 1 year
 DAX.chunk.indices <- c()
-for (start.year in seq(from = 2000, to = 2012, by = 3)) {
+for (start.year in seq(from = 2000, to = 2012, by = 4)) {
   DAX.chunk.indices <- c(DAX.chunk.indices,
                          paste0(start.year, "-01-01/", start.year+3, "-12-31"))
 }
@@ -67,7 +67,7 @@ DAX.symb.chosen <- sample(DAX.symb.chosen, size = 4, replace = F)
 data.chunks <- list()
 for (symb in DAX.symb.chosen) {
   data.chunks[[symb]] <- lapply(DAX.chunks,
-                                function (chunk, symb) chunk[1:30, symb],
+                                function (chunk, symb) chunk[, symb],
                                 symb)
 }
 
