@@ -9,15 +9,15 @@ library("parallel")
 library("stochvollev")
 
 phi.grid <- matrix(c(3, 1.5),
-                   ncol = 2)
+                   ncol = 2, byrow = T)
 sigma2.grid <- matrix(c(2.5, 0.025,
                         2.5, 5),
-                      ncol = 2)
+                      ncol = 2, byrow = T)
 rho.grid <- matrix(c(20, 1.5,
                      0.5, 0.5,
                      1.5, 20),
-                   ncol = 2)
-mu.grid <- matrix(c(-9, 100), ncol = 2)
+                   ncol = 2, byrow = T)
+mu.grid <- matrix(c(-9, 100), ncol = 2, byrow = T)
 combinations <- nrow(phi.grid) * nrow(sigma2.grid) * nrow(rho.grid) * nrow(mu.grid)
 hyperparam.grid <- array(data = NA_real_,
                          dim = c(combinations, 4, 2),
