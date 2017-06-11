@@ -71,6 +71,14 @@ for (symb in DAX.symb.chosen) {
                                 symb)
 }
 
+# Shanghai data
+shang <- getSymbols("000001.SS", src = "yahoo", env = NULL, verbose = T, from = start, to = end)
+shang.dat <- shang[, "000001.SS.Close"]
+names(shang.dat) <- "SSE.Composite"
+saveRDS(shang.dat, file = "data/shanghai.RDS")
+shang.dat <- na.approx(shang.dat)
+shang.ret <- diff(log(shang.dat))[-1]
+
 # clean workspace
 rm(DAX.chunks, DAX.env, DAX.log.returns, DAX.data)
 
