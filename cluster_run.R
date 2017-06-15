@@ -1,15 +1,24 @@
+library("zoo")
+library("xts")
 library("stochvollev")
 
+run.version <- as.character(1)
+thread.ind <- as.integer(Sys.getenv("SGE_TASK_ID"))
+print(thread.ind)
+
+source("data.R")
+
 # 44x3x6 = 792 threads
-thread.ind <- 792
+#thread.ind <- 792
+# thread.ind comes from above!
 n.period <- 3
 n.ticker <- 44
 n.hyper <- 6
-ind.period <- ((thread.ind-1) %/% (n.ticker*n.hyper)) + 1
-ind.ticker <- ((thread.ind-1) %/% (n.period*n.hyper)) + 1
 ind.hyper <- ((thread.ind-1) %/% (n.period*n.ticker)) + 1
-
-source("data.R")
+rem.hyper <- thread.ind - ind.hyper*(n.period*n.ticker)
+ind.ticker <- ((rem.hyper-1) %/% n.period) + 1
+rem.ticker <- rem.hyper - ind.ticker*n.period
+ind.period <- rem.ticker
 
 # data is assumed to be in an xts object called dat
 if (!exists("dat")) {
@@ -45,8 +54,8 @@ rho.grid <- matrix(c(20, 1.5,
 mu.grid <- matrix(c(-9, 100), ncol = 2, byrow = T)
 combinations <- nrow(phi.grid) * nrow(sigma2.grid) * nrow(rho.grid) * nrow(mu.grid)
 hyperparam.grid <- array(data = NA_real_,
-                         dim = c(combinations, 4, 2),
-                         dimnames = c("combinations", "params", "hyperparams"))
+                         dim = c(combinations, 4, 2))
+                         
 comb.count <- 0
 for (phii in seq_len(nrow(phi.grid))) {
   for (sigma2i in seq_len(nrow(sigma2.grid))) {
@@ -86,7 +95,11 @@ result[["seed"]] <- thread.ind
 set.seed(thread.ind)
 result[["result"]] <- fnMCMCSampler(dat - mean(dat), nsim, priors, initials, iBurnin = nsim %/% 10)
 
-saveRDS(result, file = paste0("res_", formatC(ind.ticker, width=2, flag=0),
+dirname <- paste0("results/", run.version, "/")
+dir.create(dirname, showWarnings = F)
+
+saveRDS(result, file = paste0(dirname,
+                              "res_", formatC(ind.ticker, width=2, flag=0),
                               "_", formatC(ind.period, width=2, flag=0),
                               "_", formatC(ind.hyper, width=2, flag=0),
                               "_", strftime(Sys.time(), "%Y-%m-%d_%H-%M-%S"), ".RDS"))

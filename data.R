@@ -1,6 +1,3 @@
-library("zoo")
-library("xts")
-
 start <- as.Date("2004-01-01")
 end <- as.Date("2015-12-31")
 
