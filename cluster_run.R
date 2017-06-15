@@ -15,9 +15,9 @@ n.period <- 3
 n.ticker <- 44
 n.hyper <- 6
 ind.hyper <- ((thread.ind-1) %/% (n.period*n.ticker)) + 1
-rem.hyper <- thread.ind - ind.hyper*(n.period*n.ticker)
+rem.hyper <- thread.ind - (ind.hyper-1)*n.period*n.ticker
 ind.ticker <- ((rem.hyper-1) %/% n.period) + 1
-rem.ticker <- rem.hyper - ind.ticker*n.period
+rem.ticker <- rem.hyper - (ind.ticker-1)*n.period
 ind.period <- rem.ticker
 
 # data is assumed to be in an xts object called dat
