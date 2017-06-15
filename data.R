@@ -1,86 +1,36 @@
 library("zoo")
 library("xts")
-library("quantmod")
 
-start <- as.Date("2000-01-03")
+start <- as.Date("2004-01-01")
 end <- as.Date("2015-12-31")
 
-# DAX symbols
-DAX.symb <- c("PSM.DE", "DPW.DE", "MRK.DE", "DTE.DE",
-              "SAP.DE", "BAYN.DE", "VOW3.DE", "CBK.DE",
-              "VNA.DE", "EOAN.DE", "BMW.DE", "DAI.DE",
-              "CON.DE", "ADS.DE", "BEI.DE", "HEN3.DE",
-              "MUV2.DE", "DB1.DE", "ALV.DE", "SIE.DE",
-              "IFX.DE", "DBK.DE", "RWE.DE", "FRE.DE",
-              "LIN.DE", "FME.DE", "TKA.DE", "LHA.DE",
-              "BAS.DE", "HEI.DE")
-
-data.file <- "data/DAX_full_dataset.RDS"
-if (!file.exists(data.file)) {
-  DAX.env <- new.env()
-  getSymbols(DAX.symb, src = "yahoo", env = DAX.env, verbose = T, from = start)
-  saveRDS(DAX.env, file = "DAX_full_dataset.RDS")
+# prepare data
+if (F) {
+  # read data
+  data.file <- readRDS("data/chin_ger_data.RDS")
+  
+  data.symb.chosen <- c()
+  dates <- data.file$Date
+  cat("Symbol  \t Start          End       \t Chosen/Omitted")
+  for (ind in seq_len(length(data.file))[-1]) {
+    date.range <- dates[data.file[ind] > 0]
+    is.chosen <- date.range[1] <= start
+    if (is.chosen)
+      data.symb.chosen <- c(data.symb.chosen, ind)
+    cat(names(data.file)[ind], " \t", as.character(date.range[1]), " - ",
+        as.character(date.range[length(date.range)]),
+        "\t", ifelse(is.chosen, "CHOSEN", "OMITTED"), "\n")
+  }
+  
+  dat <- xts::xts(data.file[data.symb.chosen],
+                  order.by = dates)[paste0(as.character(start), "/", as.character(end)), ]
+  saveRDS(dat, file = "data/chin_ger_data_filtered.RDS")
+  
+  # clean workspace
+  rm(data.file)
 } else {
-  DAX.env <- readRDS(data.file)
+  dat <- readRDS("data/chin_ger_data_filtered.RDS")
 }
-
-DAX.symb.chosen <- c()
-cat("Symbol  \t Start          End       \t Chosen/Omitted")
-for (symb in DAX.symb) {
-  date.range <- index(get(symb, envir = DAX.env))
-  is.chosen <- date.range[1] <= start
-  if (is.chosen)
-    DAX.symb.chosen <- c(DAX.symb.chosen, symb)
-  cat(symb, " \t", as.character(date.range[1]), " - ",
-      as.character(date.range[length(date.range)]),
-      "\t", ifelse(is.chosen, "CHOSEN", "OMITTED"), "\n")
-}
-
-DAX.data <- xts()
-for (symb in DAX.symb.chosen) {
-  DAX.data <- merge.xts(DAX.data,
-                        get(symb, envir = DAX.env)[paste0("/", as.character(end)),
-                                                   paste0(symb, ".Close")],
-                        join = "outer")
-}
-colnames(DAX.data) <- DAX.symb.chosen
-
-# delete rows with NA or zero, there aren't many
-DAX.data <- DAX.data[index(DAX.data)[rowSums(is.na(DAX.data) | (DAX.data == 0)) == 0], ]
-
-DAX.log.returns <- diff(log(DAX.data))[-1]
-
-# create data chunks of 4 years with an overlap of 1 year
-DAX.chunk.indices <- c()
-for (start.year in seq(from = 2000, to = 2012, by = 4)) {
-  DAX.chunk.indices <- c(DAX.chunk.indices,
-                         paste0(start.year, "-01-01/", start.year+3, "-12-31"))
-}
-
-DAX.chunks <- list()
-for (ii in DAX.chunk.indices) {
-  DAX.chunks[[substr(ii, 1, 4)]] <- DAX.log.returns[ii, ]
-}
-
-set.seed(42)
-DAX.symb.chosen <- sample(DAX.symb.chosen, size = 4, replace = F)
-data.chunks <- list()
-for (symb in DAX.symb.chosen) {
-  data.chunks[[symb]] <- lapply(DAX.chunks,
-                                function (chunk, symb) chunk[, symb],
-                                symb)
-}
-
-# Shanghai data
-shang <- getSymbols("000001.SS", src = "yahoo", env = NULL, verbose = T, from = start, to = end)
-shang.dat <- shang[, "000001.SS.Close"]
-names(shang.dat) <- "SSE.Composite"
-saveRDS(shang.dat, file = "data/shanghai.RDS")
-shang.dat <- na.approx(shang.dat)
-shang.ret <- diff(log(shang.dat))[-1]
-
-# clean workspace
-rm(DAX.chunks, DAX.env, DAX.log.returns, DAX.data)
 
 ## Table of DAX companies as of 2017-06-10 from Yahoo! Finance
 
