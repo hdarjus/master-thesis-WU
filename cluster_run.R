@@ -73,7 +73,7 @@ for (phii in seq_len(nrow(phi.grid))) {
 
 
 result <- list()
-nsim <- 100
+nsim <- 50000
 initials <- list(phi = 0.6, sigma2 = 0.01, rho = -0.4, mu = -9)
 priors <- list(
   phi.a = hyperparam.grid[ind.hyper, 1, 1],
