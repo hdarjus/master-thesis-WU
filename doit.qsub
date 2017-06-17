@@ -1,0 +1,11 @@
+#!/bin/bash
+## COMMENT
+
+#$ -N LEVERAGE
+#$ -t 1:792
+#$ -tc 100
+#$ -o log
+#$ -j yes
+
+R-g --vanilla < cluster_run.R
+
