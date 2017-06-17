@@ -1,0 +1,260 @@
+\documentclass[notes]{beamer}       % print frame + notes
+%\documentclass[notes=only]{beamer}  % only notes
+%\documentclass{beamer}              % only frames
+
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{boxes}
+\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{default}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+%\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+\usecolortheme{dolphin}
+\usefonttheme{professionalfonts}
+
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage[skip=0pt,font=scriptsize]{caption}
+\captionsetup[figure]{labelformat=empty}
+
+\title{The Leverage Effect}
+\subtitle{Supervisor:~Prof.~Kastner}
+\author{Darjus~Hosszejni}%\inst{1}}
+%\institute[Vienna University of Economics and Business] % (optional, but mostly needed)
+%{
+%  \inst{1}%
+%  Department of Finance, Accounting \& Statistics\\
+%  Vienna University of Economics and Business
+%}
+
+\date{June 26, 2017}
+
+%\subject{Theoretical Computer Science}
+% This is only inserted into the PDF information catalog. Can be left
+% out. 
+
+% If you have a file called "university-logo-filename.xxx", where xxx
+% is a graphic format that can be processed by latex or pdflatex,
+% resp., then you can add a logo as follows:
+
+\newif\ifplacelogo
+\placelogotrue
+\pgfdeclareimage[height=1cm]{WU-Logo}{logo.jpg}
+\logo{\ifplacelogo\pgfuseimage{WU-Logo}\fi}
+
+\setbeamersize{description width=0.5cm}
+
+\AtBeginSection[]
+{
+  \begin{frame}<beamer>{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+  \end{frame}
+}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\note{
+Welcome, everyone! My master thesis is concerned with the financial leverage effect, that partly describes the relationship between returns and volatility. In my thesis, I will quantify leverage in two markets, Germany and China, and I will also examine how leverage changes when we increase the timespan of the returns from intraday to daily and monthly returns.
+}
+\end{frame}
+
+\begin{frame}{Outline}
+\tableofcontents
+\note{
+After introducing the leverage effect, I will show the model to be used to estimate it, and then I will formulate research questions and the plan.
+}
+\end{frame}
+
+% Section and subsections will appear in the presentation overview
+% and table of contents.
+\section{Introduction}
+
+\subsection{The leverage effect}
+
+\placelogofalse
+\begin{frame}{Stylized facts}{Return and its volatility}
+\begin{itemize}
+\item No significant autocorrelation between nearby returns
+\item Significant positive correlation between nearby absolute returns
+\item Periodic volatility
+\end{itemize}
+\begin{figure}[b]
+\centering
+\includegraphics[width=\linewidth]{daxvolatility.pdf}
+\caption{Rolling 10-day realized volatility of DAX. Data source: Yahoo! Finance}
+\end{figure}
+\note{
+There are some well known empirical facts about returns and volatilities, these have been better investigated than leverage, according to all the papers I read. \\
+One of them is periodic volatility, which is demonstrated on the graph. It is usually modelled with GARCH models, where an autoregressive process is assumed for the variance.
+}
+\end{frame}
+
+\begin{frame}{The leverage effect}{In the literature}
+\begin{itemize}
+\item Leverage effect: negative return-volatility correlation (Black, 1976)
+%\item ''Leverage effect less systemically investigated than volatility clustering''
+\item Significance shown using GARCH models (Bekaert, 2000)
+\item ... and also with realized volatility measures (Bouchaud, 2001)
+\end{itemize}
+\begin{figure}[b]
+\centering
+\includegraphics[width=\linewidth]{leverage.png}
+\caption{Source: Shen and Zheng (2009)}
+\end{figure}
+\note{
+Another empirical fact is the leverage effect, first described by Black, who explained it with firms' leverage, the debt-equity ratio, but the causality is still debated. \\
+The phenomenon has been proved empirically using implied volatilities of GARCH and other stochastic volatility models, and also with direct measurements. Probably Black also found it with realized volatility, but I couldn't find his paper online, that's why I cite Bouchaud instead. \\
+The effect is particularly important for option markets, it implies a significant skew in the volatility smile, which is essential to know for hedging. \\
+On the graph, only the basic daily series are important here for us. It shows the correlation between returns today and realized volatility $t$ days from now. This goes to 0 empirically, which isn't surprising, the market forgets past shocks with time. This phenomenon inspired one of my questions, which a slightly different one, and about which I couldn't find any published work. \\
+The other, more interesting thing is, that in China there is an anti-leverage effect, these authors might have been the first ones to publish that (in English).
+}
+\end{frame}
+
+\subsection{Stochastic volatility models}
+
+\placelogotrue
+\begin{frame}{The leverage effect}{Modeling}
+\begin{itemize}
+\item In continuous time: (log-normal) Ornstein--Uhlenbeck model
+\begin{itemize}
+\item mean-reverting modification of random walk/Brownian motion
+\end{itemize}
+\item Discrete time: SV model (centered parametrization)
+\begin{align*}
+        y_t & = \varepsilon_t\exp\left(h_t/2\right), \\
+        h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, \qquad t=1,\dots,n-1, \\
+    \begin{pmatrix}
+        \varepsilon_t \\
+        \eta_t
+    \end{pmatrix}
+    \bigg\vert\left(\rho,\sigma\right) & \sim\text{ i.i.d. }\mathcal{N}_2\left(\bm{0},\bm{\Sigma}\right), \\
+    \bm{\Sigma} & =
+    \begin{pmatrix}
+        1 & \rho\sigma \\
+        \rho\sigma & \sigma^2
+    \end{pmatrix}.
+\end{align*}
+\end{itemize}
+\note{
+Previously I said that the usual choice for modeling volatility is GARCH, but several papers in the 90s found that SV models outperform GARCH models at fitting stock index returns. The leverage effect can also be measured using SV models. A popular continuous time model is the Ornstein--Uhlenbeck model, which is mean reverting, and has other useful properties too. \\
+The discretized version of the log-normal OU model is the model I will use. It is popular, prof Fruhwirth-Schnatter and prof Kastner have recently had results in this topic.\\
+The main things to note about the model are that $y$ is the only observed variable here, it's usually the log-return, and $h$ is its log-volatility, which has random shocks. The leverage here is $\rho$, the correlation between the returns and the volatility increments. \\
+Such models can be fitted using Bayesian methods.
+}
+\end{frame}
+
+\section{Thesis topic}
+
+\subsection{Research}
+
+\begin{frame}{Question and expectation}
+\begin{block}{Research question}
+\begin{description}
+\item{Q1.} Does the SV model confirm the leverage and anti-leverage effect in Germany and China, respectively?
+\item{Q2.} How does the leverage effect change with the return timespan (minutely, daily, monthly return)?
+\end{description}
+\end{block}
+\begin{block}{Expected result}
+\begin{description}
+\item{Q1.} Yes, it confirms the counter-intuitive behaviour of China.
+\item{Q2.} Either it is constant or decays with the timespan.
+\end{description}
+\end{block}
+\note{
+My first question is whether this model confirms the effects in Germany and China. These two countries, because the paper from Shen and Zheng also checked these two. My expected result is a definite yes for Germany, and I hope it will be a yes for China too, because that would be the interesting thing. \\
+My second question is inspired by the graph from Shen and Zheng's paper, but it's different. They measured the correlation between the return now and the realized volatility $t$ days from now. What I can measure using the model is how the instantaneous leverage effect changes if we go from intraday returns to daily and monthly returns. 
+I, personally, expect either a decay to zero similar to the graph or that it's constant.
+}
+\end{frame}
+
+\begin{frame}{Obstacles}
+\begin{itemize}
+\item Lack of software
+\begin{itemize}
+\item R package stochvol (Kastner, 2016): same model without leverage
+\end{itemize}
+\item Lack of developed highly efficient sampling methods
+\begin{itemize}
+\item Interweaving different parametrizations (Yu, 2011; Kastner and Fr{\"u}hwirth-Schnatter, 2014)
+\item State space sampling without loops (McCausland, 2011)
+\end{itemize}
+\item Data acquisition
+\begin{itemize}
+\item German DAX
+\item Shanghai index and Shenzhen index
+\end{itemize}
+\end{itemize}
+\note{
+The most important obstacle I face is the lack of software for the given model. Prof. Kastner's stochvol package implements the same model just with $\rho$ set to 0, and I have to start implementing the model from the beginning most likely, but I can use some ideas from there how to improve its sampling and computational efficiency. Also, luckily, there are two papers that develop an exact methodology for this model, so I can base my implementation on that, but most likely that methodology can be improved in terms of efficiency, and I will try to do that, too. \\
+Data acquisition is not really a problem, German and Chinese stock indices are on Yahoo! Finance and on Bloomberg, and many other vedors.
+}
+\end{frame}
+
+\subsection{Research design}
+
+\begin{frame}{Methodology}
+\begin{enumerate}
+\item Implement the basic model in R (Omori, 2007)
+\item Derive the fully non-centered parametrization and build it into the implementation
+\item Test and profile the software on a generated dataset
+\item Acquire the data (Yahoo! Finance or Bloomberg)
+\item Fit the model on the datasets with intraday, daily and monthly returns
+\end{enumerate}
+\note{
+In my research, I have to start with the model implementation. Let me emphasize that actually the implementation itself can already be quite useful for the R society. Then I will see if ideas applied in stochvol can improve the efficiency. I will test the software on a generated dataset when it is ready, then get the data to be analysed, prepare it, and fit the model on it.
+}
+\end{frame}
+
+% Placing a * after \section means it will not show in the
+% outline or table of contents.
+\section*{Summary}
+
+\begin{frame}{Summary}
+\begin{itemize}
+\item Research question: behaviour of the leverage effect in different markets and timespans
+\item Use the SV model, Bayesian inference
+\item Implement the model in R
+\item Improve the sampling efficiency
+\item Apply the model to DAX, SSE Composite, SHENZHEN Composite
+\item Formulate results
+\end{itemize}
+\note{
+To wrap it up: I will examine the leverage effect in two markets using a popular stochastic volatility model. For that, I need to implement the model, try to improve its efficiency to make the number of runs for my thesis feasible, then apply the software to the data and formulate the results. \\
+Let me finish with selected references, thank you for your attention.
+}
+\end{frame}
+
+\begin{frame}[shrink]
+\frametitle{References}
+\bibliographystyle{abbrv}
+\bibliography{references}
+\nocite{shen2009cross,kastner2014ancillarity,omori2007stochastic,jacquier2004bayesian,mccausland2011simulation}
+\end{frame}
+
+\end{document}
+
+
