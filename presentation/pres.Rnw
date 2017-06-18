@@ -1,6 +1,6 @@
-\documentclass[notes]{beamer}       % print frame + notes
+%\documentclass[notes]{beamer}       % print frame + notes
 %\documentclass[notes=only]{beamer}  % only notes
-%\documentclass{beamer}              % only frames
+\documentclass{beamer}              % only frames
 
 %\usetheme{AnnArbor}
 %\usetheme{Antibes}
@@ -32,6 +32,7 @@
 
 \usecolortheme{dolphin}
 \usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}%remove navigation symbols
 
 \usepackage{amsmath}
 \usepackage{mathtools}
@@ -40,8 +41,8 @@
 \captionsetup[figure]{labelformat=empty}
 
 \title{The Leverage Effect}
-\subtitle{Supervisor:~Prof.~Kastner}
-\author{Darjus~Hosszejni}%\inst{1}}
+\subtitle{Supervisor: Prof. Kastner}
+\author{Darjus Hosszejni}%\inst{1}}
 %\institute[Vienna University of Economics and Business] % (optional, but mostly needed)
 %{
 %  \inst{1}%
@@ -75,6 +76,61 @@
 
 \begin{document}
 
+<<setup, include=FALSE, cache=FALSE>>=
+library("knitr")
+library("ggplot2")
+library("TTR")
+library("dplyr")
+library("tidyr")
+library("zoo")
+library("xts")
+# set global chunk options
+opts_chunk$set(fig.path='figure/fig-', fig.align='center')
+
+dat <- readRDS("../data/chin_ger_data.RDS")
+tickers <- readRDS("../results/tickers.RDS")
+periods <- readRDS("../results/periods.RDS")
+tick <- readRDS("../results/tick.RDS")
+names <- readRDS("../results/names.RDS")
+results <- readRDS("../results/chosen_stocks.RDS")
+
+periodnames <- paste0(c(2004, 2008, 2012), "-", c(2008, 2012, 2016))
+periodends <- as.Date(c("2007-12-31", "2011-12-31"))
+
+ploth <- function (ticker, start, name = ticker,
+                   res = results, ps = periods, pends = periodends) {
+  dat <- res[[ticker]]
+  dxts <- as.zoo(dat[[ps[1]]]$data)
+  hzoo <- zoo(exp(dat[[ps[1]]]$result$h/2),
+              order.by = dat[[ps[1]]]$dates)
+  for (p in ps[-1]) {
+    hzoo <- rbind(hzoo,
+                  zoo(exp(dat[[p]]$result$h/2),
+                      order.by = dat[[p]]$dates))
+    dxts <- rbind(dxts,
+                  as.zoo(dat[[p]]$data))
+  }
+  opar <- par(no.readonly = T, mar = c(2, 2, 1, 1), cex = 1)
+  layout(matrix(1:2, ncol = 1))
+  plot(start*exp(cumsum(dxts)),
+       ylab = "price", xlab = "",
+       main = name)
+  plot(hzoo,
+       screens = 1,
+       col = c("light gray", "dark gray", "black", "dark gray", "light gray"),
+       ylab = "volatility", xlab = "",
+       main = paste0("Posterior volatility of ", name))
+  abline(v = pends, col = "turquoise", lty = 2)
+  legend("topleft",
+         legend = c("Median", "5-95% quantiles", "1-99% quantiles", "Period separator"),
+         col = c("black", "dark gray", "light gray", "turquoise"),
+         lty = c(1, 1, 1, 2),
+         cex = .9, y.intersp = .85)
+  layout(1)
+  par(opar)
+}
+@
+
 \begin{frame}
 \titlepage
 \note{
@@ -93,60 +149,47 @@ After introducing the leverage effect, I will show the model to be used to estim
 % and table of contents.
 \section{Introduction}
 
-\subsection{The leverage effect}
-
-\placelogofalse
-\begin{frame}{Stylized facts}{Return and its volatility}
+\begin{frame}{Motivation}{Model volatility}
 \begin{itemize}
-\item No significant autocorrelation between nearby returns
-\item Significant positive correlation between nearby absolute returns
-\item Periodic volatility
+\item Time-varying volatility,
+\item Leverage effect (Black, 1976),
+\begin{itemize}
+\item Negative correlation between stock return its volatility,
+\item Low leverage ratio $\implies$ high ROE and high variance of ROE.
 \end{itemize}
-\begin{figure}[b]
-\centering
-\includegraphics[width=\linewidth]{daxvolatility.pdf}
-\caption{Rolling 10-day realized volatility of DAX. Data source: Yahoo! Finance}
-\end{figure}
-\note{
-There are some well known empirical facts about returns and volatilities, these have been better investigated than leverage, according to all the papers I read. \\
-One of them is periodic volatility, which is demonstrated on the graph. It is usually modelled with GARCH models, where an autoregressive process is assumed for the variance.
-}
+\end{itemize}
+
+%, out.width='\\linewidth', out.height='1in'
+<<seasonal-vol, cache=T, fig.show='asis', echo=F, fig.height=3.4, fig.width=10, out.height='1.7in', out.width='.85\\linewidth'>>=
+plotdat <- dat %>%
+  rename(Stock = DAI.GY.Equity) %>%
+  select(Date, Stock) %>%
+  filter(Stock > 0) %>%
+  mutate(Volatility = sqrt(252)*c(NA, TTR::runSD(diff(log(Stock))))) %>%
+  filter(!is.na(Volatility)) %>%
+  rename("Share price" = Stock, "Realized volatility" = Volatility) %>%
+  gather(Type, Value, "Share price", "Realized volatility", factor_key = T)
+ggplot(plotdat) +
+  aes(x = Date, y = Value) +
+  geom_line() +
+  facet_grid(Type ~ ., scales = "free_y") +
+  ggtitle("Seasonal volatility and the leverage effect on Daimler AG") +
+  theme_bw() +
+  theme(axis.title = element_blank())
+@
+
 \end{frame}
 
-\begin{frame}{The leverage effect}{In the literature}
-\begin{itemize}
-\item Leverage effect: negative return-volatility correlation (Black, 1976)
-%\item ''Leverage effect less systemically investigated than volatility clustering''
-\item Significance shown using GARCH models (Bekaert, 2000)
-\item ... and also with realized volatility measures (Bouchaud, 2001)
-\end{itemize}
-\begin{figure}[b]
-\centering
-\includegraphics[width=\linewidth]{leverage.png}
-\caption{Source: Shen and Zheng (2009)}
-\end{figure}
-\note{
-Another empirical fact is the leverage effect, first described by Black, who explained it with firms' leverage, the debt-equity ratio, but the causality is still debated. \\
-The phenomenon has been proved empirically using implied volatilities of GARCH and other stochastic volatility models, and also with direct measurements. Probably Black also found it with realized volatility, but I couldn't find his paper online, that's why I cite Bouchaud instead. \\
-The effect is particularly important for option markets, it implies a significant skew in the volatility smile, which is essential to know for hedging. \\
-On the graph, only the basic daily series are important here for us. It shows the correlation between returns today and realized volatility $t$ days from now. This goes to 0 empirically, which isn't surprising, the market forgets past shocks with time. This phenomenon inspired one of my questions, which a slightly different one, and about which I couldn't find any published work. \\
-The other, more interesting thing is, that in China there is an anti-leverage effect, these authors might have been the first ones to publish that (in English).
-}
-\end{frame}
+\section{The model}
 
-\subsection{Stochastic volatility models}
+\subsection{Formulation}
 
-\placelogotrue
-\begin{frame}{The leverage effect}{Modeling}
-\begin{itemize}
-\item In continuous time: (log-normal) Ornstein--Uhlenbeck model
-\begin{itemize}
-\item mean-reverting modification of random walk/Brownian motion
-\end{itemize}
-\item Discrete time: SV model (centered parametrization)
+\begin{frame}{Stochastic volatility with leverage}
+Based on Taylor (1982), published by Omori et al. (2007),
 \begin{align*}
-        y_t & = \varepsilon_t\exp\left(h_t/2\right), \\
-        h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, \qquad t=1,\dots,n-1, \\
+    y_t & = \varepsilon_t\exp\left(h_t/2\right), \\
+    h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, \qquad t=1,\dots,n-1, \\
+    h_1 & \sim \mathcal{N}\left(\mu,\frac{\sigma^2}{1-\phi^2}\right), \\
     \begin{pmatrix}
         \varepsilon_t \\
         \eta_t
@@ -156,105 +199,264 @@ The other, more interesting thing is, that in China there is an anti-leverage ef
     \begin{pmatrix}
         1 & \rho\sigma \\
         \rho\sigma & \sigma^2
-    \end{pmatrix}.
+    \end{pmatrix},
 \end{align*}
-\end{itemize}
-\note{
-Previously I said that the usual choice for modeling volatility is GARCH, but several papers in the 90s found that SV models outperform GARCH models at fitting stock index returns. The leverage effect can also be measured using SV models. A popular continuous time model is the Ornstein--Uhlenbeck model, which is mean reverting, and has other useful properties too. \\
-The discretized version of the log-normal OU model is the model I will use. It is popular, prof Fruhwirth-Schnatter and prof Kastner have recently had results in this topic.\\
-The main things to note about the model are that $y$ is the only observed variable here, it's usually the log-return, and $h$ is its log-volatility, which has random shocks. The leverage here is $\rho$, the correlation between the returns and the volatility increments. \\
-Such models can be fitted using Bayesian methods.
+where
+\begin{equation*}
+y_t = \text{log return}, \qquad
+h_t = \text{log volatility}, \qquad
+\rho = \text{leverage.}
+\end{equation*}
+\note{Difference from GARCH: there would be a function of $\varepsilon_t$ instead of $\eta_t$. GARCH is deterministic conditional on yesterday's information, this is random.
+$y_t$ is the only observed value here, usually the log returns.
+Estimated parameters: log volatility for each time point; phi: volatility persistence; mu: mean volatility; sigma2: volatility of volatility; rho: leverage.
+Why this weird indexing? This is the Euler approximation of the log-normal Ornstein--Uhlenbeck model, and this way rho is not responsible for any skewness in y (Omori et al. 2007).
 }
 \end{frame}
 
-\section{Thesis topic}
+\subsection{Inference}
 
-\subsection{Research}
-
-\begin{frame}{Question and expectation}
-\begin{block}{Research question}
-\begin{description}
-\item{Q1.} Does the SV model confirm the leverage and anti-leverage effect in Germany and China, respectively?
-\item{Q2.} How does the leverage effect change with the return timespan (minutely, daily, monthly return)?
-\end{description}
-\end{block}
-\begin{block}{Expected result}
-\begin{description}
-\item{Q1.} Yes, it confirms the counter-intuitive behaviour of China.
-\item{Q2.} Either it is constant or decays with the timespan.
-\end{description}
-\end{block}
-\note{
-My first question is whether this model confirms the effects in Germany and China. These two countries, because the paper from Shen and Zheng also checked these two. My expected result is a definite yes for Germany, and I hope it will be a yes for China too, because that would be the interesting thing. \\
-My second question is inspired by the graph from Shen and Zheng's paper, but it's different. They measured the correlation between the return now and the realized volatility $t$ days from now. What I can measure using the model is how the instantaneous leverage effect changes if we go from intraday returns to daily and monthly returns. 
-I, personally, expect either a decay to zero similar to the graph or that it's constant.
-}
+\begin{frame}{Linear equivalent}
+After applying $x\mapsto\log(x^2)$ on the first equation,
+\begin{align*}
+    \log(y^2_t) & = h_t+\log(\varepsilon^2_t), \\
+    h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, \qquad t=1,\dots,n-1, \\
+    h_1 & \sim \mathcal{N}\left(\mu,\frac{\sigma^2}{1-\phi^2}\right), \\
+    \begin{pmatrix}
+        \varepsilon_t \\
+        \eta_t
+    \end{pmatrix}
+    \bigg\vert\left(\rho,\sigma\right) & \sim\text{ i.i.d. }\mathcal{N}_2\left(\bm{0},\bm{\Sigma}\right), \\
+    \bm{\Sigma} & =
+    \begin{pmatrix}
+        1 & \rho\sigma \\
+        \rho\sigma & \sigma^2
+    \end{pmatrix},
+\end{align*}
+where
+\begin{equation*}
+y_t = \text{log return}, \qquad
+h_t = \text{log volatility}, \qquad
+\rho = \text{leverage.}
+\end{equation*}
+\note{We store $\sgn(y_t)$, so this is equivalent to the previous formulation.}
 \end{frame}
 
-\begin{frame}{Obstacles}
+\begin{frame}{Estimation}{Frequentist}
+\begin{align*}
+    \log(y^2_t) & = h_t+\log(\varepsilon^2_t), \\
+    h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, \qquad t=1,\dots,n-1.
+\end{align*}
 \begin{itemize}
-\item Lack of software
+\item ML for $\bm{h}=(h_1, \dots, h_n)$:
 \begin{itemize}
-\item R package stochvol (Kastner, 2016): same model without leverage
+\item $\bm{h}$ is high-dimensional and intercorrelated, difficult.
 \end{itemize}
-\item Lack of developed highly efficient sampling methods
+\item ML for $(\phi, \sigma^2, \rho, \mu)$:
 \begin{itemize}
-\item Interweaving different parametrizations (Yu, 2011; Kastner and Fr{\"u}hwirth-Schnatter, 2014)
-\item State space sampling without loops (McCausland, 2011)
+\item We need to integrate over $\bm{h}$ $\to$ difficult in the current setup.
 \end{itemize}
-\item Data acquisition
+\item Assume $\log(\varepsilon^2_t)$ is Gaussian,
 \begin{itemize}
-\item German DAX
-\item Shanghai index and Shenzhen index
+\item Kalman filter integrates $\bm{h}$ out $\implies$ ''Quasi-likelihood'' of $(\phi, \sigma^2, \rho, \mu)$,
+\item Harvey et al. (1994) tried that on SV without leverage, did not work well.
 \end{itemize}
 \end{itemize}
-\note{
-The most important obstacle I face is the lack of software for the given model. Prof. Kastner's stochvol package implements the same model just with $\rho$ set to 0, and I have to start implementing the model from the beginning most likely, but I can use some ideas from there how to improve its sampling and computational efficiency. Also, luckily, there are two papers that develop an exact methodology for this model, so I can base my implementation on that, but most likely that methodology can be improved in terms of efficiency, and I will try to do that, too. \\
-Data acquisition is not really a problem, German and Chinese stock indices are on Yahoo! Finance and on Bloomberg, and many other vedors.
-}
+\vspace{1cm}
+\note{Estimation: \\
+Frequentist: \\
+Since the volatility vector is high-dimensional and intercorrelated, ML for $h$ is really difficult. Just to get the other parameters, we would need to integrate $h$ out, which is again really difficult. A quasi-likelihood method }
 \end{frame}
 
-\subsection{Research design}
+\begin{frame}{Estimation}{Bayesian}
+\vspace{-.8cm}
+\begin{align*}
+    \log(y^2_t) & = h_t+\log(\varepsilon^2_t), \\
+    h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, \qquad t=1,\dots,n-1.
+\end{align*}
+\vspace{-.9cm}
+\begin{itemize}
+\item No closed form posteriors $\implies$ MCMC.
+\item One-at-a-time volatility update:
+\begin{itemize}
+\item Samples $h_t\mid (\bm{h_{[-t]}},y,\phi,\sigma^2,\rho,\mu)$,
+\item Kim et al. (1998) tried that on SV without leverage,
+\item Bad sampling efficiency because $\bm{h}$ is intercorrelated
+\end{itemize}
+\item Multi-move sampler:
+\begin{itemize}
+\item Samples $\bm{h}\mid (y,\phi,\sigma^2,\rho,\mu)$,
+\item No tools for this model in the literature, problem: $\log(\varepsilon^2_t)$.
+\item Idea (Kim et al., 1998): $f_{\log(\varepsilon^2_t)}(x)\sim\sum_{j=1}^K p_jf_{\mathcal{N}(m_j, v_j^2)}$,
+\item Linear Gaussian state space conditional on the mixture component.
+\item Worked well on SV without leverage (Kim et al., 1998),
+\item Omori et al. (2007) generalized it for SV with leverage.
+\end{itemize}
+\end{itemize}
+\end{frame}
 
-\begin{frame}{Methodology}
+\begin{frame}{Estimation}{Multi-move Bayesian, Omori et al., 2007}
+Approximate model, $K=10$: given mixture states $\bm{s}=(s_1, \dots, s_n)$,
+\begin{align*}
+    \log(y^2_t) & = h_t+\varepsilon^\ast_t, \\
+    h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, \qquad t=1,\dots,n-1, \\
+    \left.
+    \begin{pmatrix}
+        \varepsilon^\ast_t \\
+        \eta_t
+    \end{pmatrix}
+    \middle\vert
+    \right.
+    \left(\text{sgn}(y_t),s_t,\rho,\sigma\right) & \sim\text{ i.i.d. }\mathcal{N}_2\left(\bm{m_{s_t}},\bm{\Sigma_{s_t}}\right),
+\end{align*}
+MCMC steps:
 \begin{enumerate}
-\item Implement the basic model in R (Omori, 2007)
-\item Derive the fully non-centered parametrization and build it into the implementation
-\item Test and profile the software on a generated dataset
-\item Acquire the data (Yahoo! Finance or Bloomberg)
-\item Fit the model on the datasets with intraday, daily and monthly returns
+\item Initialize $\bm{h}, \bm{s}, \phi, \sigma^2, \rho, \mu$,
+\item Draw $\bm{s}\mid (\bm y, \bm h, \phi, \sigma^2, \rho, \mu)$: Inverse transform sampling,
+\item Draw $(\phi, \sigma^2, \rho)\mid (\bm y, \bm s)$: Kalman filter and Metropolis-Hastings,
+\item Draw $(\bm h, \mu)\mid (\bm y, \bm s, \phi, \sigma^2, \rho)$: Gaussian simulation smoother,
+\item Goto 2.
 \end{enumerate}
-\note{
-In my research, I have to start with the model implementation. Let me emphasize that actually the implementation itself can already be quite useful for the R society. Then I will see if ideas applied in stochvol can improve the efficiency. I will test the software on a generated dataset when it is ready, then get the data to be analysed, prepare it, and fit the model on it.
-}
 \end{frame}
 
-% Placing a * after \section means it will not show in the
-% outline or table of contents.
-\section*{Summary}
+\section{Research question}
 
-\begin{frame}{Summary}
+\begin{frame}{Research question}
+\begin{enumerate}
+\item Compare leverage in Germany and China: do Chinese common stocks show anti-leverage? Inspired by Shen et al. (2009).
+\item How does leverage change through time?
+\end{enumerate}
+
+Answer questions using the SV model with leverage, but
 \begin{itemize}
-\item Research question: behaviour of the leverage effect in different markets and timespans
-\item Use the SV model, Bayesian inference
-\item Implement the model in R
-\item Improve the sampling efficiency
-\item Apply the model to DAX, SSE Composite, SHENZHEN Composite
-\item Formulate results
+\item Software for estimating SV with leverage was not easily accessible,
+\item My \textsf{R} implementation has been finished recently, so
+\item Only preliminary results available.
 \end{itemize}
-\note{
-To wrap it up: I will examine the leverage effect in two markets using a popular stochastic volatility model. For that, I need to implement the model, try to improve its efficiency to make the number of runs for my thesis feasible, then apply the software to the data and formulate the results. \\
-Let me finish with selected references, thank you for your attention.
-}
 \end{frame}
+
+\section{Emipirical results}
+
+\subsection{Setup}
+
+\begin{frame}{Data and number of runs}
+Dataset: 12 Chinese, 30 German companies + SSE50, DAX indices.
+
+4-year-long time periods:
+\begin{enumerate}
+\item Before crisis + bubble: 2004.01.01 -- 2007.12.31,
+\item Crisis: 2008.01.01 -- 2011.12.31,
+\item After: 2012.01.01 -- 2015.12.31.
+\end{enumerate}
+6 hyperparameter settings.
+\begin{equation*}
+44\times 4\times 6=792\text{ different runs, each with 55000 samples (burn-in=5000)}.
+\end{equation*}
+Around third of these estimations did not converge in time.
+
+Chosen companies for comparison: SAICO Motor, China Unicom, Deutsche Telekom, Adidas.
+\end{frame}
+
+\begin{frame}{Chosen priors and initials for comparison}
+Domain:
+\begin{equation*}
+(\phi, \sigma^2, \rho, \mu)\in(-1,1)\times\mathrm{R}^+\times(-1,1)\times\mathrm{R}
+\end{equation*}
+Priors:
+\begin{align*}
+\phi &\sim \text{Beta}(3, 1.5)*2-1, \\
+\sigma^2 &\sim \text{InverseGamma}(2.5, \text{rate}=0.025), \\
+\rho &\sim \text{Beta}(0.5, 0.5)*2-1, \\
+\mu &\sim \mathcal{N}(-9, 100).
+\end{align*}
+Initials:
+\begin{equation*}
+\phi=0.6, \qquad \sigma^2=0.01, \qquad \rho=-0.4, \qquad \mu=-9,
+\end{equation*}
+\begin{equation*}
+h_t=-9, \qquad s_t=5, \qquad \forall t=1,\dots,n.
+\end{equation*}
+\end{frame}
+
+\begin{frame}{Volatility estimates}{China}
+<<china-vol, cache=T, fig.show='asis', echo=F, fig.height=5, fig.width=10, out.height='2.5in', out.width='.85\\linewidth'>>=
+ploth(tickers[tick[2]], name = names[2], start = 3.973)
+@
+\end{frame}
+
+\begin{frame}{Volatility estimates}{Germany}
+<<germany-vol, cache=T, fig.show='asis', echo=F, fig.height=5, fig.width=10, out.height='2.5in', out.width='.85\\linewidth'>>=
+ploth(tickers[tick[4]], name = names[4], start = 14.96)
+@
+\end{frame}
+
+\begin{frame}{Volatility persistence estimates}
+<<phi, cache=T, fig.show='asis', echo=F, fig.height=5, fig.width=10, out.height='2.5in', out.width='.85\\linewidth'>>=
+opar <- par(no.readonly = T, mar = c(2, 4, 2, 1), cex.main = 0.95)
+layout(matrix(1:12, ncol = 4, byrow = T))  # periods x companies
+for (periodind in 1:3) {
+  for (ti in c(1,2,4,3)) {
+    dat <- results[[tickers[tick[ti]]]][[periods[periodind]]]
+    plot(density(dat$result$samples$phi),
+         main = paste0(names[ti], " ", periodnames[periodind]),
+         xlab = "", xlim = c(0.4, 1), ylim = c(0, 30),
+         ylab = "Density")
+    curve(dbeta((x+1)/2, dat$prior$phi.a, dat$prior$phi.b),
+          add = T,
+          col = "gray")
+  }
+}
+layout(1)
+par(opar)
+@
+\end{frame}
+
+\begin{frame}{Leverage estimates}
+<<rho, cache=T, fig.show='asis', echo=F, fig.height=5, fig.width=10, out.height='2.5in', out.width='.85\\linewidth'>>=
+opar <- par(no.readonly = T, mar = c(2, 4, 2, 1), cex.main = 0.95)
+layout(matrix(1:12, ncol = 4, byrow = T))  # periods x companies
+for (periodind in 1:3) {
+  for (ti in c(1,2,4,3)) {
+    dat <- results[[tickers[tick[ti]]]][[periods[periodind]]]
+    plot(density(dat$result$samples$rho),
+         main = paste0(names[ti], " ", periodnames[periodind]),
+         xlab = "", xlim = c(-1, 1), ylim = c(0, 4.5),
+         ylab = "Density")
+    curve(dbeta((x+1)/2, dat$prior$rho.a, dat$prior$rho.b),
+          add = T,
+          col = "gray")
+  }
+}
+layout(1)
+par(opar)
+@
+\end{frame}
+
+\section{Outlook}
+
+\begin{frame}{Outlook}
+Master thesis: Systematically check the behavior of leverage for the other stocks as well.
+
+Possible future work:
+\begin{itemize}
+\item Implement sampling efficiency improving techniques used in \texttt{stochvol}.
+\item Time varying leverage model?
+\item Does leverage improve the predictive density of SV models?
+\end{itemize}
+\end{frame}
+
+\section*{Summary}
 
 \begin{frame}[shrink]
 \frametitle{References}
 \bibliographystyle{abbrv}
 \bibliography{references}
-\nocite{shen2009cross,kastner2014ancillarity,omori2007stochastic,jacquier2004bayesian,mccausland2011simulation}
+\nocite{shen2009cross,kastner2014ancillarity,omori2007stochastic,kim1998stochastic,mccausland2011simulation}
 \end{frame}
 
 \end{document}
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

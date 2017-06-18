@@ -121,12 +121,19 @@ if (F) {
   
   tickers <- names(results)
   periods <- sort(names(results[[1]]))
+  tick <- c(8, 10, 34, 35, 43, 44)
+  names <- c("SAICO Motor", "China Unicom",
+             "Adidas", "Deutsche Telekom", "SSE50 Index", "DAX Index")
   
   saveRDS(tickers, file = "results/tickers.RDS")
   saveRDS(periods, file = "results/periods.RDS")
+  saveRDS(tick, file = "results/tick.RDS")
+  saveRDS(names, file = "results/names.RDS")
 } else {
   tickers <- readRDS("results/tickers.RDS")
   periods <- readRDS("results/periods.RDS")
+  tick <- readRDS("results/tick.RDS")
+  names <- readRDS("results/names.RDS")
 }
 
 # based on the densities I chose tickers 1, 10, 23, 34 plus the two indices
