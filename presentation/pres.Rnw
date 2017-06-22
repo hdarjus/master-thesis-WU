@@ -34,6 +34,8 @@
 \usefonttheme{professionalfonts}
 \setbeamertemplate{navigation symbols}{}%remove navigation symbols
 
+%\usepackage{beamerthemesplit}
+\usepackage{multirow}
 \usepackage{amsmath}
 \usepackage{mathtools}
 \usepackage{bm}
@@ -67,11 +69,12 @@
 
 \setbeamersize{description width=0.5cm}
 
-\AtBeginSection[]
-{
-  \begin{frame}<beamer>{Outline}
-    \tableofcontents[currentsection,currentsubsection]
-  \end{frame}
+\newcommand{\backupbegin}{
+   \newcounter{finalframe}
+   \setcounter{finalframe}{\value{framenumber}}
+}
+\newcommand{\backupend}{
+   \setcounter{framenumber}{\value{finalframe}}
 }
 
 \begin{document}
@@ -100,19 +103,19 @@ periodends <- as.Date(c("2007-12-31", "2011-12-31"))
 ploth <- function (ticker, start, name = ticker,
                    res = results, ps = periods, pends = periodends) {
   dat <- res[[ticker]]
-  dxts <- as.zoo(dat[[ps[1]]]$data)
+  dzoo <- as.zoo(dat[[ps[1]]]$data)
   hzoo <- zoo(exp(dat[[ps[1]]]$result$h/2),
               order.by = dat[[ps[1]]]$dates)
   for (p in ps[-1]) {
     hzoo <- rbind(hzoo,
                   zoo(exp(dat[[p]]$result$h/2),
                       order.by = dat[[p]]$dates))
-    dxts <- rbind(dxts,
+    dzoo <- rbind(dzoo,
                   as.zoo(dat[[p]]$data))
   }
   opar <- par(no.readonly = T, mar = c(2, 2, 1, 1), cex = 1)
   layout(matrix(1:2, ncol = 1))
-  plot(start*exp(cumsum(dxts)),
+  plot(dzoo,
        ylab = "price", xlab = "",
        main = name)
   plot(hzoo,
@@ -154,30 +157,28 @@ After introducing the leverage effect, I will show the model to be used to estim
 \item Time-varying volatility,
 \item Leverage effect (Black, 1976),
 \begin{itemize}
-\item Negative correlation between stock return its volatility,
-\item Low leverage ratio $\implies$ high ROE and high variance of ROE.
+\item Negative correlation between stock return and its volatility.
 \end{itemize}
 \end{itemize}
 
 %, out.width='\\linewidth', out.height='1in'
-<<seasonal-vol, cache=T, fig.show='asis', echo=F, fig.height=3.4, fig.width=10, out.height='1.7in', out.width='.85\\linewidth'>>=
+<<seasonal-vol, cache=T, fig.show='asis', echo=F, fig.height=3.4, fig.width=10, out.width='\\textwidth'>>=
 plotdat <- dat %>%
-  rename(Stock = DAI.GY.Equity) %>%
-  select(Date, Stock) %>%
-  filter(Stock > 0) %>%
-  mutate(Volatility = sqrt(252)*c(NA, TTR::runSD(diff(log(Stock))))) %>%
+  rename(Price = DAI.GY.Equity) %>%
+  select(Date, Price) %>%
+  filter(Price > 0) %>%
+  mutate(Volatility = sqrt(252)*c(NA, TTR::runSD(diff(log(Price))))) %>%
   filter(!is.na(Volatility)) %>%
-  rename("Share price" = Stock, "Realized volatility" = Volatility) %>%
-  gather(Type, Value, "Share price", "Realized volatility", factor_key = T)
+  gather(Type, Value, Price, Volatility, factor_key = T)
 ggplot(plotdat) +
   aes(x = Date, y = Value) +
   geom_line() +
   facet_grid(Type ~ ., scales = "free_y") +
-  ggtitle("Seasonal volatility and the leverage effect on Daimler AG") +
+  ggtitle("Illustration: stock price and 10 day rolling volatility of Daimler AG") +
   theme_bw() +
   theme(axis.title = element_blank())
 @
-
+\vspace{1.5cm}
 \end{frame}
 
 \section{The model}
@@ -185,11 +186,10 @@ ggplot(plotdat) +
 \subsection{Formulation}
 
 \begin{frame}{Stochastic volatility with leverage}
-Based on Taylor (1982), published by Omori et al. (2007),
+Key references: Taylor (1982), Omori et al. (2007).
 \begin{align*}
     y_t & = \varepsilon_t\exp\left(h_t/2\right), \\
     h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, \qquad t=1,\dots,n-1, \\
-    h_1 & \sim \mathcal{N}\left(\mu,\frac{\sigma^2}{1-\phi^2}\right), \\
     \begin{pmatrix}
         \varepsilon_t \\
         \eta_t
@@ -204,7 +204,7 @@ Based on Taylor (1982), published by Omori et al. (2007),
 where
 \begin{equation*}
 y_t = \text{log return}, \qquad
-h_t = \text{log volatility}, \qquad
+h_t = \text{log variance}, \qquad
 \rho = \text{leverage.}
 \end{equation*}
 \note{Difference from GARCH: there would be a function of $\varepsilon_t$ instead of $\eta_t$. GARCH is deterministic conditional on yesterday's information, this is random.
@@ -221,7 +221,6 @@ After applying $x\mapsto\log(x^2)$ on the first equation,
 \begin{align*}
     \log(y^2_t) & = h_t+\log(\varepsilon^2_t), \\
     h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, \qquad t=1,\dots,n-1, \\
-    h_1 & \sim \mathcal{N}\left(\mu,\frac{\sigma^2}{1-\phi^2}\right), \\
     \begin{pmatrix}
         \varepsilon_t \\
         \eta_t
@@ -236,7 +235,7 @@ After applying $x\mapsto\log(x^2)$ on the first equation,
 where
 \begin{equation*}
 y_t = \text{log return}, \qquad
-h_t = \text{log volatility}, \qquad
+h_t = \text{log variance}, \qquad
 \rho = \text{leverage.}
 \end{equation*}
 \note{We store $\sgn(y_t)$, so this is equivalent to the previous formulation.}
@@ -248,18 +247,12 @@ h_t = \text{log volatility}, \qquad
     h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, \qquad t=1,\dots,n-1.
 \end{align*}
 \begin{itemize}
-\item ML for $\bm{h}=(h_1, \dots, h_n)$:
-\begin{itemize}
-\item $\bm{h}$ is high-dimensional and intercorrelated, difficult.
-\end{itemize}
 \item ML for $(\phi, \sigma^2, \rho, \mu)$:
 \begin{itemize}
-\item We need to integrate over $\bm{h}$ $\to$ difficult in the current setup.
-\end{itemize}
+\item We need to integrate over $\bm{h}$ $\to$ difficult because of non-Gaussianity.
 \item Assume $\log(\varepsilon^2_t)$ is Gaussian,
-\begin{itemize}
-\item Kalman filter integrates $\bm{h}$ out $\implies$ ''Quasi-likelihood'' of $(\phi, \sigma^2, \rho, \mu)$,
-\item Harvey et al. (1994) tried that on SV without leverage, did not work well.
+\item Kalman filter integrates $\bm{h}$ out $\implies$ ``Quasi-likelihood'' of $(\phi, \sigma^2, \rho, \mu)$,
+\item Harvey et al. (1994) tried that on SV without leverage, approximation was bad.
 \end{itemize}
 \end{itemize}
 \vspace{1cm}
@@ -277,19 +270,19 @@ Since the volatility vector is high-dimensional and intercorrelated, ML for $h$ 
 \vspace{-.9cm}
 \begin{itemize}
 \item No closed form posteriors $\implies$ MCMC.
-\item One-at-a-time volatility update:
+\item Single-move volatility update:
 \begin{itemize}
 \item Samples $h_t\mid (\bm{h_{[-t]}},y,\phi,\sigma^2,\rho,\mu)$,
 \item Kim et al. (1998) tried that on SV without leverage,
 \item Bad sampling efficiency because $\bm{h}$ is intercorrelated
 \end{itemize}
-\item Multi-move sampler:
+\item Multi-move volatility update:
 \begin{itemize}
 \item Samples $\bm{h}\mid (y,\phi,\sigma^2,\rho,\mu)$,
 \item No tools for this model in the literature, problem: $\log(\varepsilon^2_t)$.
-\item Idea (Kim et al., 1998): $f_{\log(\varepsilon^2_t)}(x)\sim\sum_{j=1}^K p_jf_{\mathcal{N}(m_j, v_j^2)}$,
+\item Idea (Kim et al., 1998): $f_{\log(\varepsilon^2_t)}\sim\sum_{j=1}^K p_jf_{\mathcal{N}(m_j, v_j^2)}$,
 \item Linear Gaussian state space conditional on the mixture component.
-\item Worked well on SV without leverage (Kim et al., 1998),
+\item Works well on SV without leverage (Kim et al., 1998),
 \item Omori et al. (2007) generalized it for SV with leverage.
 \end{itemize}
 \end{itemize}
@@ -330,8 +323,7 @@ MCMC steps:
 Answer questions using the SV model with leverage, but
 \begin{itemize}
 \item Software for estimating SV with leverage was not easily accessible,
-\item My \textsf{R} implementation has been finished recently, so
-\item Only preliminary results available.
+\item Fortunately, preliminary results are available through my new \textsf{R} package.
 \end{itemize}
 \end{frame}
 
@@ -352,80 +344,154 @@ Dataset: 12 Chinese, 30 German companies + SSE50, DAX indices.
 \begin{equation*}
 44\times 4\times 6=792\text{ different runs, each with 55000 samples (burn-in=5000)}.
 \end{equation*}
-Around third of these estimations did not converge in time.
-
-Chosen companies for comparison: SAICO Motor, China Unicom, Deutsche Telekom, Adidas.
+Chosen companies for comparison: China Unicom, Deutsche Telekom.
 \end{frame}
 
-\begin{frame}{Chosen priors and initials for comparison}
+\begin{frame}{Chosen priors for comparison}
 Domain:
 \begin{equation*}
-(\phi, \sigma^2, \rho, \mu)\in(-1,1)\times\mathrm{R}^+\times(-1,1)\times\mathrm{R}
+(\phi, \sigma^2, \rho, \mu)\in(-1,1)\times\mathbb{R}^+\times(-1,1)\times\mathbb{R}
 \end{equation*}
 Priors:
 \begin{align*}
 \phi &\sim \text{Beta}(3, 1.5)*2-1, \\
 \sigma^2 &\sim \text{InverseGamma}(2.5, \text{rate}=0.025), \\
 \rho &\sim \text{Beta}(0.5, 0.5)*2-1, \\
-\mu &\sim \mathcal{N}(-9, 100).
+\mu &\sim \mathcal{N}(-9, 100), \\
+h_1 & \sim \mathcal{N}\left(\mu,\frac{\sigma^2}{1-\phi^2}\right).
 \end{align*}
-Initials:
-\begin{equation*}
-\phi=0.6, \qquad \sigma^2=0.01, \qquad \rho=-0.4, \qquad \mu=-9,
-\end{equation*}
-\begin{equation*}
-h_t=-9, \qquad s_t=5, \qquad \forall t=1,\dots,n.
-\end{equation*}
 \end{frame}
 
-\begin{frame}{Volatility estimates}{China}
-<<china-vol, cache=T, fig.show='asis', echo=F, fig.height=5, fig.width=10, out.height='2.5in', out.width='.85\\linewidth'>>=
-ploth(tickers[tick[2]], name = names[2], start = 3.973)
-@
-\end{frame}
-
-\begin{frame}{Volatility estimates}{Germany}
-<<germany-vol, cache=T, fig.show='asis', echo=F, fig.height=5, fig.width=10, out.height='2.5in', out.width='.85\\linewidth'>>=
-ploth(tickers[tick[4]], name = names[4], start = 14.96)
-@
-\end{frame}
-
-\begin{frame}{Volatility persistence estimates}
-<<phi, cache=T, fig.show='asis', echo=F, fig.height=5, fig.width=10, out.height='2.5in', out.width='.85\\linewidth'>>=
-opar <- par(no.readonly = T, mar = c(2, 4, 2, 1), cex.main = 0.95)
-layout(matrix(1:12, ncol = 4, byrow = T))  # periods x companies
+\begin{frame}[plain]
+<<china-vol, cache=T, fig.show='asis', echo=F, fig.height=7, fig.width=10, out.width='\\textwidth'>>=
+#ploth(tickers[tick[4]], name = names[4], start = 14.96)
+ps = periods
+pends = periodends
+ticker <- tickers[tick[4]]
+name <- names[4]
+dat <- results[[ticker]]
+dzoo <- as.zoo(dat[[ps[1]]]$data)
+hzoo <- zoo(exp(dat[[ps[1]]]$result$h/2),
+            order.by = dat[[ps[1]]]$dates)
+for (p in ps[-1]) {
+  hzoo <- rbind(hzoo,
+                zoo(exp(dat[[p]]$result$h/2),
+                    order.by = dat[[p]]$dates))
+  dzoo <- rbind(dzoo,
+                as.zoo(dat[[p]]$data))
+}
+opar <- par(no.readonly = T, mar = c(2, 4, 1.5, 1), cex = 1)
+layout(matrix(c(1,1,1,2,2,2,3,4,5,6,7,8),
+              ncol = 3,
+              byrow = T))
+plot(dzoo,
+     ylab = "Log return", xlab = "",
+     main = name)
+plot(hzoo,
+     screens = 1,
+     col = c("light gray", "dark gray", "black", "dark gray", "light gray"),
+     ylab = "Variance", xlab = "",
+     main = "Posterior variance")
+abline(v = pends, col = "red", lty = 2)
+legend("topleft",
+       legend = c("Median", "5-95% quantiles", "1-99% quantiles", "Period separator"),
+       col = c("black", "dark gray", "light gray", "red"),
+       lty = c(1, 1, 1, 2),
+       cex = .9, y.intersp = .9)
 for (periodind in 1:3) {
-  for (ti in c(1,2,4,3)) {
-    dat <- results[[tickers[tick[ti]]]][[periods[periodind]]]
-    plot(density(dat$result$samples$phi),
-         main = paste0(names[ti], " ", periodnames[periodind]),
-         xlab = "", xlim = c(0.4, 1), ylim = c(0, 30),
-         ylab = "Density")
-    curve(dbeta((x+1)/2, dat$prior$phi.a, dat$prior$phi.b),
-          add = T,
-          col = "gray")
+  dat <- results[[ticker]][[periods[periodind]]]
+  plot(density(dat$result$samples$phi),
+       main = paste0("Persistence of log var. ", periodnames[periodind]),
+       xlab = "", xlim = c(0.4, 1), ylim = c(0, 30),
+       ylab = "Density")
+  curve(dbeta((x+1)/2, dat$prior$phi.a, dat$prior$phi.b),
+        add = T,
+        col = "gray")
+  if (periodind == 1) {
+    legend("topleft",
+           legend = c("Prior", "Posterior"),
+           col = c("gray", "black"),
+           lty = 1,
+           cex = .9, y.intersp = .9)
   }
+}
+for (periodind in 1:3) {
+  dat <- results[[ticker]][[periods[periodind]]]
+  plot(density(dat$result$samples$rho),
+       main = paste0("Leverage ", periodnames[periodind]),
+       xlab = "", xlim = c(-1, 1), ylim = c(0, 4.5),
+       ylab = "Density")
+  curve(dbeta((x+1)/2, dat$prior$rho.a, dat$prior$rho.b),
+        add = T,
+        col = "gray")
 }
 layout(1)
 par(opar)
 @
 \end{frame}
 
-\begin{frame}{Leverage estimates}
-<<rho, cache=T, fig.show='asis', echo=F, fig.height=5, fig.width=10, out.height='2.5in', out.width='.85\\linewidth'>>=
-opar <- par(no.readonly = T, mar = c(2, 4, 2, 1), cex.main = 0.95)
-layout(matrix(1:12, ncol = 4, byrow = T))  # periods x companies
+\begin{frame}[plain]
+<<germany-vol, cache=T, fig.show='asis', echo=F, fig.height=7, fig.width=10, out.width='\\textwidth'>>=
+#ploth(tickers[tick[2]], name = names[2], start = 3.973)
+ps = periods
+pends = periodends
+ticker <- tickers[tick[2]]
+name <- names[2]
+dat <- results[[ticker]]
+dzoo <- as.zoo(dat[[ps[1]]]$data)
+hzoo <- zoo(exp(dat[[ps[1]]]$result$h/2),
+            order.by = dat[[ps[1]]]$dates)
+for (p in ps[-1]) {
+  hzoo <- rbind(hzoo,
+                zoo(exp(dat[[p]]$result$h/2),
+                    order.by = dat[[p]]$dates))
+  dzoo <- rbind(dzoo,
+                as.zoo(dat[[p]]$data))
+}
+opar <- par(no.readonly = T, mar = c(2, 4, 1.5, 1), cex = 1)
+layout(matrix(c(1,1,1,2,2,2,3,4,5,6,7,8),
+              ncol = 3,
+              byrow = T))
+plot(dzoo,
+     ylab = "Log return", xlab = "",
+     main = name)
+plot(hzoo,
+     screens = 1,
+     col = c("light gray", "dark gray", "black", "dark gray", "light gray"),
+     ylab = "Variance", xlab = "",
+     main = "Posterior variance")
+abline(v = pends, col = "red", lty = 2)
+legend("top",
+       legend = c("Median", "5-95% quantiles", "1-99% quantiles", "Period separator"),
+       col = c("black", "dark gray", "light gray", "red"),
+       lty = c(1, 1, 1, 2),
+       cex = .9, y.intersp = .9)
 for (periodind in 1:3) {
-  for (ti in c(1,2,4,3)) {
-    dat <- results[[tickers[tick[ti]]]][[periods[periodind]]]
-    plot(density(dat$result$samples$rho),
-         main = paste0(names[ti], " ", periodnames[periodind]),
-         xlab = "", xlim = c(-1, 1), ylim = c(0, 4.5),
-         ylab = "Density")
-    curve(dbeta((x+1)/2, dat$prior$rho.a, dat$prior$rho.b),
-          add = T,
-          col = "gray")
+  dat <- results[[ticker]][[periods[periodind]]]
+  plot(density(dat$result$samples$phi),
+       main = paste0("Persistence of log var. ", periodnames[periodind]),
+       xlab = "", xlim = c(0.4, 1), ylim = c(0, 30),
+       ylab = "Density")
+  curve(dbeta((x+1)/2, dat$prior$phi.a, dat$prior$phi.b),
+        add = T,
+        col = "gray")
+  if (periodind == 1) {
+    legend("topleft",
+           legend = c("Prior", "Posterior"),
+           col = c("gray", "black"),
+           lty = 1,
+           cex = .9, y.intersp = .9)
   }
+}
+for (periodind in 1:3) {
+  dat <- results[[ticker]][[periods[periodind]]]
+  plot(density(dat$result$samples$rho),
+       main = paste0("Leverage ", periodnames[periodind]),
+       xlab = "", xlim = c(-1, 1), ylim = c(0, 4.5),
+       ylab = "Density")
+  curve(dbeta((x+1)/2, dat$prior$rho.a, dat$prior$rho.b),
+        add = T,
+        col = "gray")
 }
 layout(1)
 par(opar)
@@ -435,13 +501,17 @@ par(opar)
 \section{Outlook}
 
 \begin{frame}{Outlook}
-Master thesis: Systematically check the behavior of leverage for the other stocks as well.
+Master thesis: the behavior of leverage
+\begin{itemize}
+\item On more companies,
+\item In a rolling window instead of the currently fixed periods.
+\end{itemize}
 
 Possible future work:
 \begin{itemize}
-\item Implement sampling efficiency improving techniques used in \texttt{stochvol}.
-\item Time varying leverage model?
+\item Implement sampling efficiency improving techniques used in \texttt{stochvol} (ASIS, AWOL).
 \item Does leverage improve the predictive density of SV models?
+\item Time varying leverage model?
 \end{itemize}
 \end{frame}
 
@@ -453,6 +523,40 @@ Possible future work:
 \bibliography{references}
 \nocite{shen2009cross,kastner2014ancillarity,omori2007stochastic,kim1998stochastic,mccausland2011simulation}
 \end{frame}
+
+\section*{Backup slides}
+
+\backupbegin
+\begin{frame}{Leverage ratio vs. Leverage effect}{Modigliani--Miller}
+Leverage ratio $=\frac{\text{Market equity}}{\text{Debt}}$. One firm,
+\begin{itemize}
+\item Equity increased from 1999 to 2000,
+\item Debt stayed the same, risk-free at a rate of 5\%,
+\item Same project in 1999 and 2000:
+\begin{itemize}
+\item Invest \$400, payoff either \$200 or \$800.
+\end{itemize}
+\item When equity is cheaper, return sensitivity ($\sim$volatility) is higher.
+\end{itemize}
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+\begin{table}[]
+\fontsize{7}{9}\selectfont
+\centering
+\begin{tabular}{lccccccc}
+\multirow{2}{*}{} & \textbf{Date 0} & \multicolumn{2}{c}{\textbf{Date 1: Cash Flows}} & \multicolumn{2}{c}{\textbf{Date 1: Returns}} & \multicolumn{2}{c}{} \\
+ & \begin{tabular}[c]{@{}c@{}}Initial\\ Value\end{tabular} & \begin{tabular}[c]{@{}c@{}}Strong\\ Economy\end{tabular} & \begin{tabular}[c]{@{}c@{}}Weak\\ Economy\end{tabular} & \begin{tabular}[c]{@{}c@{}}Strong\\ Economy\end{tabular} & \begin{tabular}[c]{@{}c@{}}Weak\\ Economy\end{tabular} & \begin{tabular}[c]{@{}c@{}}Expected\\ Return\end{tabular} & \begin{tabular}[c]{@{}c@{}}Return\\ Sensitivity\end{tabular} \\ \hline
+\multicolumn{1}{l|}{Debt} & \multicolumn{1}{c|}{\$500} & \$525 & \$525 & 5\% & \multicolumn{1}{c|}{5\%} & 5\% & 0\% \\ \hline
+\multicolumn{1}{l|}{Equity in 1999} & \multicolumn{1}{c|}{\$500} & \$775 & \$375 & 55\% & \multicolumn{1}{c|}{-25\%} & 15\% & 80\% \\ \hline
+\multicolumn{1}{l|}{Equity in 2000} & \multicolumn{1}{c|}{\$1000} & \$1275 & \$875 & 27.5\% & \multicolumn{1}{c|}{-12.5\%} & 7.5\% & 40\%
+\end{tabular}
+\caption{An example demonstrating the effect of increasing equity on return on equity.}
+\label{my-label}
+\end{table}
+\normalsize
+Low leverage ratio $\implies$ high ROE and high variance of ROE.
+\end{frame}
+\backupend
 
 \end{document}
 
