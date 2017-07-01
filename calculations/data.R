@@ -4,29 +4,37 @@ end <- as.Date("2015-12-31")
 # prepare data
 if (F) {
   # read data
-  data.file <- readRDS("data/chin_ger_data.RDS")
+  data.file <- readRDS("../data/chin_ger_data.RDS")
   
   data.symb.chosen <- c()
   dates <- data.file$Date
   cat("Symbol  \t Start          End       \t Chosen/Omitted")
   for (ind in seq_len(length(data.file))[-1]) {
+    name <- names(data.file)[ind]
     date.range <- dates[data.file[ind] > 0]
     is.chosen <- date.range[1] <= start
     if (is.chosen)
-      data.symb.chosen <- c(data.symb.chosen, ind)
-    cat(names(data.file)[ind], " \t", as.character(date.range[1]), " - ",
+      data.symb.chosen <- c(data.symb.chosen, name)
+    cat(name, " \t", as.character(date.range[1]), " - ",
         as.character(date.range[length(date.range)]),
         "\t", ifelse(is.chosen, "CHOSEN", "OMITTED"), "\n")
   }
   
-  dat <- xts::xts(data.file[data.symb.chosen],
+  set.seed(1)
+  data.symb.chosen.chin <- Filter(function (x) grepl("^X", x), data.symb.chosen)
+  data.symb.chosen.germ <- Filter(function (x) grepl("^[^X].+Equity", x), data.symb.chosen)
+  data.symb.chosen.chin <- sample(data.symb.chosen.chin, 10, replace = F)
+  data.symb.chosen.germ <- sample(data.symb.chosen.germ, 10, replace = F)
+  data.symb.chosen <- c(data.symb.chosen.chin, data.symb.chosen.germ)
+  
+  dat <- xts::xts(data.file[, data.symb.chosen],
                   order.by = dates)[paste0(as.character(start), "/", as.character(end)), ]
-  saveRDS(dat, file = "data/chin_ger_data_filtered.RDS")
+  saveRDS(dat, file = "../data/chin_ger_data_filtered.RDS")
   
   # clean workspace
   rm(data.file)
 } else {
-  dat <- readRDS("data/chin_ger_data_filtered.RDS")
+  dat <- readRDS("../data/chin_ger_data_filtered.RDS")
 }
 
 ## Table of DAX companies as of 2017-06-10 from Yahoo! Finance

@@ -95,7 +95,7 @@ probs <- c(.01, .05, .5, .95, .99)
 
 if (F) {
   results <- list()
-  for (f in list.files("results/mcmc-run/", full.names = T)) {
+  for (f in list.files("../results/mcmc-run/", full.names = T)) {
     if (!(substr(f, start = 33, stop = 34) == "02"))
       next
     subresult <- readRDS(f)
@@ -125,15 +125,15 @@ if (F) {
   names <- c("SAICO Motor", "China Unicom",
              "Adidas", "Deutsche Telekom", "SSE50 Index", "DAX Index")
   
-  saveRDS(tickers, file = "results/tickers.RDS")
-  saveRDS(periods, file = "results/periods.RDS")
-  saveRDS(tick, file = "results/tick.RDS")
-  saveRDS(names, file = "results/names.RDS")
+  saveRDS(tickers, file = "../results/tickers.RDS")
+  saveRDS(periods, file = "../results/periods.RDS")
+  saveRDS(tick, file = "../results/tick.RDS")
+  saveRDS(names, file = "../results/names.RDS")
 } else {
-  tickers <- readRDS("results/tickers.RDS")
-  periods <- readRDS("results/periods.RDS")
-  tick <- readRDS("results/tick.RDS")
-  names <- readRDS("results/names.RDS")
+  tickers <- readRDS("../results/tickers.RDS")
+  periods <- readRDS("../results/periods.RDS")
+  tick <- readRDS("../results/tick.RDS")
+  names <- readRDS("../results/names.RDS")
 }
 
 # based on the densities I chose tickers 1, 10, 23, 34 plus the two indices
@@ -142,7 +142,7 @@ names <- c("SAICO Motor", "China Unicom",
            "Adidas", "Deutsche Telekom", "SSE50 Index", "DAX Index")
 if (F) {
   results <- list()
-  for (f in list.files("results/mcmc-run/", full.names = T)) {
+  for (f in list.files("../results/mcmc-run/", full.names = T)) {
     if (!(substr(f, start = 27, stop = 28) %in% formatC(tick, width = 2, flag = 0)))
       next
     if (!(substr(f, start = 33, stop = 34) == "02"))
@@ -153,9 +153,9 @@ if (F) {
     results[[colnames(subresult$data)]][[subresult$years]] <- subresult
   }
   
-  saveRDS(results, file = "results/chosen_stocks.RDS")
+  saveRDS(results, file = "../results/chosen_stocks.RDS")
 } else {
-  results <- readRDS("results/chosen_stocks.RDS")
+  results <- readRDS("../results/chosen_stocks.RDS")
 }
 
 # Questions:
