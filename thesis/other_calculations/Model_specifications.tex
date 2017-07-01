@@ -1,0 +1,182 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{enumerate}
+\usepackage[margin=2cm]{geometry}
+
+\title{Augmented Kalman filter specialization}
+\author{Darjus Hosszejni}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Model specifications}
+
+\subsection{General}
+
+The model, conditional on mixture states (from de Jong), is
+\begin{align*}
+y_t & = X_t\beta+Z_t\alpha_t+G_tu_t, \qquad t=1,2,\dots,n, \\
+\alpha_{t+1} & = W_t\beta+T_t\alpha_t+H_tu_t, \qquad t=0,1,2,\dots,n,
+\end{align*}
+where $\alpha_0=0$, and $u_t\sim \mathcal{N}(0,\sigma_g^2I)$.
+
+\subsection{Our case}
+
+Denote $\gamma_{ts}=d_t\rho\sigma\exp(m_{ts}/2)$. Depending on the mixture state $s$, we have
+\begin{align*}
+y_t & = m_{ts}+\alpha_t+v_{ts}u_{t1}, \\
+\alpha_{t+1} & = \mu(1-\phi)+a_{ts}\gamma_{ts}+\phi\alpha_t+b_{ts}v_{ts}\gamma_{ts}u_{t1}+\sigma\sqrt{1-\rho^2}u_{t2}.
+\end{align*}
+
+\subsection{Pattern matching}
+
+The parameters from the general setup are substituted here according to below.
+\begin{align*}
+\beta & = \begin{pmatrix} 1 \\ 1 \\ \mu(1-\phi) \end{pmatrix}, \\
+Z_t & = 1, \\
+T_t & = \phi, \\
+\sigma_g & = 1, \\
+G_t & = \begin{pmatrix} v_{ts} & 0 \end{pmatrix}, \\
+H_0 & = \begin{pmatrix} 0 & \frac{\sigma}{\sqrt{1-\phi^2}} \end{pmatrix}, \\
+H_t & = \begin{pmatrix} b_{ts}v_{ts}\gamma_{ts} & \sigma\sqrt{1-\rho^2} \end{pmatrix}, \\
+W_0 & = \begin{pmatrix} 0 & 0 & \frac1{1-\phi} \end{pmatrix}, \\
+W_t & = \begin{pmatrix} 0 & a_{ts}\gamma_{ts} & 1 \end{pmatrix}, \\
+X_t & = \begin{pmatrix} m_{ts} & 0 & 0 \end{pmatrix}.
+\end{align*}
+
+\section{Augmented Kalman filter}
+
+\subsection{General case}
+
+Denote $\eta_t=F_tu_t$ for $t=0,1,\dots,n$. Then the augmented Kalman filter for $t=1,\dots,n$ is
+\begin{align*}
+e_t & = y_t-X_t\beta-Z_ta_t, \\
+D_t & = Z_tP_tZ_t^\prime+G_tG_t^\prime, \\
+K_t & = (T_tP_tZ_t^\prime+H_tG_t^\prime)D_t^{-1}, \\
+a_{t+1} & = W_t\beta+T_ta_t+K_te_t, \\
+P_{t+1} & = T_tP_tL_t^\prime+H_tJ_t^\prime,
+\end{align*}
+with values
+\begin{align*}
+a_1 & = W_0\beta, \\
+P_1 & = H_0H_0^\prime, \\
+L_t & = T_t-K_tZ_t, \\
+J_t & = H_t-K_tG_t.
+\end{align*}
+
+We also consider extra equations with the decomposition $\beta=b+B\mu$, (from Nakajima, Appendix B),
+\begin{align*}
+f_t & = y_t-X_tb-Z_ta_t^*, \\
+a_{t+1}^* & = W_tb+T_ta_t^*+K_tf_t, \\
+F_t & = X_tB-Z_tA_t^*, \\
+A_{t+1}^* & = -W_tB+T_tA_t^*+K_tF_t,
+\end{align*}
+with values
+\begin{align*}
+a_1^* & = W_0b, \\
+A_1^* & = -W_0B.
+\end{align*}
+Note that $e_t = f_t-F_t\mu$ and $a_t = a_t^*-A_t^*\mu$.
+
+Then the posterior of $\mu$ given $y$ is $\mathcal{N}(Q_{n+1}^{-1}q_{n+1},Q_{n+1}^{-1})$, where the prior of $\mu$ is $\mathcal{N}(c, C)$, and
+\begin{align*}
+q_{t+1} & = q_t+F_t^\prime D_t^{-1}f_t, \qquad q_1=C^{-1}c, \\
+Q_{t+1} & = Q_t+F_t^\prime D_t^{-1}F_t, \qquad Q_1=C^{-1}.
+\end{align*}
+
+Then the log likelihood of $y$ is given by
+\begin{equation*}
+\log f(y) = -0.5\left(\sum_{t=1}^n\log\left(\lvert\text{det}(D_t)\rvert\right)+\log\left(\lvert\text{det}(Q_{t+1})\rvert\right)+\sum_{t=1}^n f_t^\prime D_t^{-1}f_t + c^\prime C^{-1}c - q_{n+1}^\prime Q_{n+1}^{-1}q_{n+1}\right) + \text{constant}.
+\end{equation*}
+
+\subsection{Our case}
+
+We have
+\begin{align*}
+F_t & = H_t, \\
+b & = \begin{pmatrix} 1 \\ 1 \\ 0 \end{pmatrix}, \\
+B & = \begin{pmatrix} 0 \\ 0 \\ \mu(1-\phi) \end{pmatrix}, \\
+c & = \mu_\mu, \\
+C & = \sigma_\mu^2.
+\end{align*}
+
+Denote $\gamma_{ts}=d_t\rho\sigma\exp(m_{ts}/2)$ and $h_{ts}=b_{ts}v_{ts}\gamma_{ts}$. We don't calculate $e_t$ or $a_t$, we deduce them later. Then
+\begin{align*}
+D_t & = P_t+v_{ts}^2, \\
+K_t & = \frac{\phi P_t+h_{ts}v_{ts}}{D_t}, \\
+P_{t+1} & = \phi P_tL_t+h_{ts}j_{t1} + j_{t2}^2, \\
+f_t & = y_t - m_{ts} - a_t^*, \\
+F_t & = -A_t^*, \\
+a_{t+1}^* & = a_{ts}\gamma_{ts}+\phi a_t^* + K_tf_t, \\
+A_{t+1}^* & = \phi-1+\phi A_t^*+K_tF_t,
+\end{align*}
+with values
+\begin{align*}
+a_1^* & = 0, \\
+A_1^* & = -1, \\
+P_1 & = \frac{\sigma^2}{1-\phi^2}, \\
+L_t & = \phi-K_t, \\
+J_t & = \begin{pmatrix} h_{ts}-K_tv_{ts} & \sigma\sqrt{1-\rho^2} \end{pmatrix}.
+\end{align*}
+Don't confuse $a_t$ with $a_{ts}$, they are completely different! The latter is the constant $a$ specified for the approximating Gaussian mixture in state $s$.
+
+About the posterior of $\mu$ given $y$,
+\begin{align*}
+q_{t+1} & = q_t+F_tf_t/D_t, \qquad q_1=\mu_\mu/\sigma_\mu^2, \\
+Q_{t+1} & = Q_t+F_t^2/D_t, \qquad Q_1=1/\sigma_\mu^2.
+\end{align*}
+
+And the log likelihood of $y$,
+\begin{equation*}
+\log f(y) = -0.5\left(\sum_{t=1}^n\log\left(\lvert D_t\rvert\right)+\log\left(\lvert Q_{t+1}\rvert\right)+\sum_{t=1}^n f_t^2/D_t + \mu_\mu^2/\sigma_\mu^2 - q_{n+1}^2/Q_{n+1}\right) + \text{constant}.
+\end{equation*}
+
+\section{Simulation smoother}
+
+\subsection{General case}
+
+Then, for $t=n,\dots,1$, the simulation smoother is
+\begin{align*}
+C_t & = F_t(I-G_t^\prime D_t^{-1}G_t-J_t^\prime U_tJ_t)F_t^\prime, \\
+\varepsilon_t & \sim\mathcal{N}(0, \sigma_g^2C_t), \\
+V_t & = F_t(G_t^\prime D_t^{-1}Z_t+J_t^\prime U_tL_t), \\
+r_{t-1} & = Z_t^\prime D_t^{-1}e_t + L_t^\prime r_t-V_t^\prime C_t^{-1}\varepsilon_t, \\
+U_{t-1} & = Z_t^\prime D_t^{-1}Z_t+L_t^\prime U_tL_t+V_t^\prime C_t^{-1}V_t, \\
+\eta_t & = F_t(G_t^\prime D_t^{-1}e_t+J_t^\prime r_t) + \varepsilon_t,
+\end{align*}
+with values
+\begin{align*}
+r_n &=0, \\
+U_n &=0, \\
+\eta_0 &= F_0H_0^\prime r_0 + \varepsilon_0, \\
+\varepsilon_0 &\sim\mathcal{N}(0,\sigma_g^2C_0), \\
+C_0 &= F_0(I-H_0^\prime U_0H_0)F_0^\prime.
+\end{align*}
+
+\subsection{Our case}
+
+\begin{align*}
+C_t & = (h_{ts}^2 + \sigma^2(1-\rho^2))-(h_{ts}v_{ts})^2/D_t-U_t(H_tJ_t^\prime)^2, \\
+\varepsilon_t & \sim\mathcal{N}(0, C_t), \\
+V_t & = h_{ts}v_{ts}/D_t+U_tL_t(h_{ts}j_{t1} + j_{t2}^2), \\
+r_{t-1} & = e_t/D_t + L_tr_t-V_t\varepsilon_t/C_t, \\
+U_{t-1} & = 1/D_t+U_tL_t^2+V_t^2/C_t, \\
+\eta_t & = h_{ts}v_{ts}e_t/D_t+(h_{ts}j_{t1} + j_{t2}^2)r_t + \varepsilon_t,
+\end{align*}
+with values
+\begin{align*}
+r_n &=0, \\
+U_n &=0, \\
+\eta_0 &= \frac{\sigma^2}{1-\phi^2}r_0 + \varepsilon_0, \\
+\varepsilon_0 &\sim\mathcal{N}(0,C_0), \\
+C_0 &= \frac{\sigma^2}{1-\phi^2}\left(1-\frac{\sigma^2}{1-\phi^2}U_0\right).
+\end{align*}
+
+\end{document}
+

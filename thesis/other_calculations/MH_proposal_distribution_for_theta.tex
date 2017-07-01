@@ -1,0 +1,52 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{enumerate}
+\usepackage[margin=2cm]{geometry}
+
+\title{Metropolis--Hastings proposal distribution\\for $\theta$}
+\author{Darjus Hosszejni}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section*{Proposal}
+
+We want a nice proposal for $\pi(\theta\vert y^\ast,d,s)$.
+We'll use the second order Taylor expansion of $g(\theta)=\log(\pi(\theta\vert y^\ast,d,s))$ as the base for the parameters of a normal approximation.
+The approx. should be somehow around the mode with the correct second order structure.
+
+We're only interested in approximations $f$ for which $f(\theta^\text{new})-f(\theta^\text{old})\sim g(\theta^\text{new})-g(\theta^\text{old})$,
+so constants that cancel out don't matter.
+It turns out that a good candidate is
+\begin{equation*}
+f(\theta)=-\frac12(\theta-\theta_\ast)^\prime\Sigma_\ast^{-1}(\theta-\theta_\ast),
+\end{equation*}
+where
+\begin{align*}
+\theta_\ast &= \hat\theta+\Sigma_\ast\gamma_\ast, \\
+\hat\theta &= \text{arg}\max_\theta g(\theta), \qquad \text{the mode of the posterior}, \\
+\gamma_\ast &= \left.\frac{\partial g(\theta)}{\partial\theta}\right\rvert_{\theta=\hat\theta}, \qquad \text{the gradient},\\
+-\Sigma_\ast^{-1} &= \left.\frac{\partial^2 g(\theta)}{\partial\theta^\prime\partial\theta}\right\rvert_{\theta=\hat\theta}, \qquad \text{the Hessian},
+\end{align*}
+i.e. $\mathcal{N}(\theta_\ast,\Sigma_\ast)$ fits, its density is a constant times the second order Taylor expansion of the posterior density.
+
+When the Hessian is not negative definite we use $\Sigma_\ast=cI$ with a large $c$.
+
+\subsection*{Taylor expansion}
+
+This is the explanation and proof for the above.
+\begin{align*}
+g(\theta) &\sim g\left(\hat\theta\right)+g^\prime\left(\hat\theta\right)^\text{T}\left(\theta-\hat\theta\right)+\frac12\left(\theta-\hat\theta\right)^\text{T}g^{\prime\prime}\left(\hat\theta\right)\left(\theta-\hat\theta\right), \\
+&= -\frac12\left[-\gamma_\ast^\text{T}\left(\theta-\hat\theta\right)+\left(\theta-\hat\theta\right)^\text{T}\Sigma_\ast^{-1}\left(\theta-\hat\theta\right)\right]+g\left(\hat\theta\right), \\
+&= -\frac12(\theta-\theta_\ast)^\text{T}\Sigma_\ast^{-1}(\theta-\theta_\ast)+\frac12\gamma_\ast^\text{T}\Sigma_\ast\gamma_\ast+g\left(\hat\theta\right), \\
+&= f(\theta)+\text{constant}(\hat\theta).
+\end{align*}
+
+\end{document}
+

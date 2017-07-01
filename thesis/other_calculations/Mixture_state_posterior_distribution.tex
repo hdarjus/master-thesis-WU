@@ -1,0 +1,125 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{enumerate}
+\usepackage[margin=2cm]{geometry}
+
+\title{Posterior distribution of $s_t$}
+\author{Darjus Hosszejni}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Model}
+
+In linear Gaussian state space form:
+
+\begin{align*}
+\begin{pmatrix}
+y^*_t \\
+h_{t+1} \\
+\tilde\mu_{t+1}
+\end{pmatrix} &=
+\begin{pmatrix}
+h_t \\
+\tilde\mu_t+\phi(h_t-\tilde\mu_t) \\
+\tilde\mu_t
+\end{pmatrix} +
+\begin{pmatrix}
+\varepsilon^*_t \\
+\eta_t \\
+0
+\end{pmatrix}, \qquad t=1,\dots,T-1 \\
+y_T &= h_T + \varepsilon^*_T,
+\end{align*}
+and
+\begin{equation*}
+\begin{pmatrix}
+h_1 \\
+\tilde\mu_1
+\end{pmatrix} \sim
+\mathcal{N}\left(
+\begin{pmatrix}
+\mu_0 \\
+\mu_0
+\end{pmatrix},
+\begin{pmatrix}
+\sigma^2/(1-\phi^2)+\sigma_0^2 & \sigma_0^2 \\
+\sigma_0^2 & \sigma_0^2
+\end{pmatrix}
+\right),
+\end{equation*}
+and
+\begin{align*}
+\left\{
+\begin{pmatrix}
+\varepsilon^*_t \\
+\eta_t
+\end{pmatrix}\middle\vert\rho,\sigma,d_t,s_t=j
+\right\}
+& \sim 
+\mathcal{N}\left(
+\begin{pmatrix}
+m_j \\
+C_j a_j
+\end{pmatrix},
+\begin{pmatrix}
+v_j^2 & C_j b_j v_j^2 \\
+C_j b_j v_j^2 & C_j^2b_j^2 + \sigma^2(1-\rho^2)
+\end{pmatrix}
+\right),\qquad t=1,\dots,T-1, \\
+\left\{\varepsilon^*_T \middle\vert\rho,\sigma,d_T,s_T=j\right\}
+& \sim 
+\mathcal{N}\left(m_j, v_j^2\right),
+\end{align*}
+where $C_j = d_t\rho\sigma\text{exp}(m_j/2)$.
+
+Since $\eta_T$ doesn't have a role in the model, so we can exclude it. Note, that $\varepsilon^*_T$ is independent of all $\varepsilon^*_t$ and $\eta_t$ values for $t=1,\dots,T-1$. 
+
+\section{The posterior}
+
+We denote complete sequences with bold letters, e.g. $\bm{y}=(y_1,\dots,y_T)$.
+
+We want $\pi(s_t=j\mid\bm{y},\bm{h},\mu,\sigma,\rho,\phi)$, the posterior distribution. For $t=1,\dots,T-1$ we rewrite it,
+\begin{align*}
+\pi(s_t=j\mid\bm{y},\bm{h},\mu,\sigma,\rho,\phi)
+&= \pi(s_t=j\mid\bm{y^*},\bm{d},\bm{h},\mu,\sigma,\rho,\phi) \\
+&\overset{(1)}{=} \pi(s_t=j\mid y^*_t,d_t,h_{t+1},h_t,\mu,\sigma,\rho,\phi) \\
+&\overset{(2)}{=} \pi(s_t=j\mid \varepsilon^*_t,d_t,\eta_t,\mu,\sigma,\rho) \\
+&\propto P(s_t=j)\cdot f_{\varepsilon^*_t,\eta_t\mid s_t=j,d_t,\mu,\sigma,\rho}(\varepsilon^*_t,\eta_t) \\
+&\overset{(3)}{=} P(s_t=j)\cdot f_{\varepsilon^*_t\mid s_t=j}(\varepsilon^*_t)\cdot f_{\eta_t\mid \varepsilon^*_t,s_t=j,d_t,\mu,\sigma,\rho}(\eta_t) \\
+&= P(s_t=j)\cdot f_{\varepsilon^*_t\mid s_t=j}(y^*_t-h_t)\cdot f_{\eta_t\mid \varepsilon^*_t,s_t=j,d_t,\mu,\sigma,\rho}(h_{t+1}-\mu-\phi(h_t-\mu)),
+\end{align*}
+arriving to the form that the Nakajima code uses.
+
+\begin{enumerate}[(1)]
+    \item $s_t$ only influences $\varepsilon_t$ and $\eta_t$. Since $\varepsilon_t=y^*_t-h_t$ and $\eta_t=h_{t+1}-\mu-\phi(h_t-\mu)$, we only need $y^*_t, h_{t+1}$ and $h_t$ from $\bm{y^*}$ and $\bm{h}$. We need $d_t$ for $\eta_t$ as well.
+    \item we substitute the values we wanted, based on the previous point.
+    \item following the derivation and approximation of the joint density $(\varepsilon^*_t,\eta_t)$ in the paper.
+\end{enumerate}
+
+For the last period, $T$, we have
+\begin{align*}
+\pi(s_T=j\mid\bm{y},\bm{h},\mu,\sigma,\rho,\phi)
+&= \pi(s_T=j\mid\bm{y^*},\bm{d},\bm{h},\mu,\sigma,\rho) \\
+&\overset{(1)}{=} \pi(s_T=j\mid y^*_T,d_T,h_T,\mu,\sigma,\rho) \\
+&\overset{(2)}{=} \pi(s_T=j\mid \varepsilon^*_T,d_T,\mu,\sigma,\rho) \\
+&\propto P(s_T=j)\cdot f_{\varepsilon^*_T\mid s_T=j,d_T,\mu,\sigma,\rho}(\varepsilon^*_T) \\
+&= P(s_T=j)\cdot f_{\varepsilon^*_T\mid s_T=j}(\varepsilon^*_T) \\
+&= P(s_T=j)\cdot f_{\varepsilon^*_T\mid s_T=j}(y^*_T-h_T) \\
+&= P(s_T=j)\cdot f_{\varepsilon^*_T\mid s_T=j}(y^*_T-h_T)\cdot 1,
+\end{align*}
+which is the same as before just having a 1 instead of $f_{\eta_t\mid \varepsilon^*_t,s_t=j,d_t,\mu,\sigma,\rho}(h_{t+1}-\mu-\phi(h_t-\mu))$. This form is used by Nakajima.
+
+\begin{enumerate}[(1)]
+    \item $s_T$ only influences $\varepsilon_T=y^*_T-h_T$.
+    \item substitution.
+\end{enumerate}
+
+\end{document}
+
