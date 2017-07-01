@@ -33,6 +33,8 @@
 %\renewcommand{\footrulewidth}{0pt}% No footer rule
 %\fancyfoot[L]{\hspace*{-16mm}\includegraphics[scale=0.3]{logoDepartment.pdf}}
 
+\includeonly{sections/01_introduction,sections/02_model,sections/03_implementation,sections/04_computations,sections/05_results}
+
 \begin{document}
 \includepdf[pages={1}]{scan-of-declaration-of-authorship.pdf}
 \pagebreak
@@ -56,7 +58,7 @@
 \bigskip
 
 %% WRITE YOUR NAME, date of birth, Student ID
-{\noindent\LARGE Darjus Hosszejni}
+{\noindent\LARGE Darjus \textsc{Hosszejni}}
 
 %% WRITE YOUR date of birth, Student ID
 \bigskip
@@ -75,7 +77,8 @@
 
 
 %% WRITE THE NAME OF YOUR SUPERVISOR
-{\noindent\large {\bf Supervisor:}\\ Mag.rer.soc.oec.MMag.rer.nat.Dipl.-Ing.Dr.techn.~Gregor Kastner}
+{\noindent\large {\bf Supervisor:}\\ Mag.rer.soc.oec.~MMag.rer.nat.~Dipl.-Ing.~Dr.techn.\\
+Gregor~\textsc{Kastner}}
 
 \bigskip
 
@@ -84,8 +87,11 @@
 
 \bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
 
-{\em\noindent Department of Finance, Accounting and Statistics, Vienna University of
-Economics and Business, Welthandelsplatz 1, 1020 Vienna, Austria
+{\em\noindent Department of Finance, Accounting and Statistics\\
+Vienna University of Economics and Business\\
+Welthandelsplatz 1\\
+1020 Vienna\\
+Austria
 }
 
 
@@ -105,9 +111,11 @@ Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et 
 
 \pagebreak
 
-\input{sections/introduction.tex}
-
-
+\include{sections/01_introduction}
+\include{sections/02_model}
+\include{sections/03_implementation}
+\include{sections/04_computations}
+\include{sections/05_results}
 
 \bibliographystyle{plain}
 \bibliography{references}
