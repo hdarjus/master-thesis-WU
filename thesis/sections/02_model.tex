@@ -1,16 +1,55 @@
+\newcommand*{\SV}{SV}
+\newcommand*{\SVL}{SVL}
+\newcommand*{\yts}{y_t^\ast}
+\newcommand*{\ets}{\varepsilon_t^\ast}
+
 \section{Model}
 
-Blabla about the model and modelling
+The Stochastic Volatility (\SV) model was introduced in the seminal work of~\citet{taylor1982financial}.
+\SV~aims at capturing time varying and clustered volatility using an AR(1) process.
+The model used in this thesis is the Stochastic Volatility with Leverage (\SVL), which, additional to the AR(1) process, also models the leverage effect by letting the stock return and the increment of the log variance have a constant correlation.
 
 \subsection{Formulation}
 
-Original form
+The \SVL~model in its canonical form, as formulated in~\citet{Omori2007}, is
+\begin{equation}
+\begin{alignedat}{2}\label{form:orig_model}
+y_t & = \varepsilon_t\exp\left(h_t/2\right), && \quad t=1,\dots,n, \\
+h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, && \quad t=1,\dots,n-1, \\
+\begin{pmatrix}
+\varepsilon_t \\
+\eta_t
+\end{pmatrix}
+\bigg\vert\left(\rho,\sigma\right) & \sim\text{ i.i.d. }\mathcal{N}_2\left(\bm{0},\bm{\Sigma}\right), \\
+\bm{\Sigma} & =
+\begin{pmatrix}
+1 & \rho\sigma \\
+\rho\sigma & \sigma^2
+\end{pmatrix},
+\end{alignedat}
+\end{equation}
+where the only observed variable is $y_t$, the demeaned log returns, and it is conditionally normally distributed, given $h_t$. The log variance, $\bm{h}$, is the latent vector, and it constitutes an AR(1) process with mean $\mu$, persistence $\phi$ and variance $\sigma^2$. Leverage is the fourth parameter, $\rho$, which is the correlation between $\varepsilon_t$ and $\eta_t$, i.e. the increment of the stock price and the increment of the log variance.
 
-Linear form
+The first equation in~\eqref{form:orig_model} is not linear in $h_t$, which makes the model difficult to estimate. For the ease of notation, let
+\begin{align*}
+\yts &=\log(y^2_t), \\
+d_t &=I(y_t\ge0)-I(y_t<0), \\
+\ets &=\log(\varepsilon^2_t),
+\end{align*}
+thus knowing $y_t$ is equivalent to knowing the pair $(\yts, d_t)$\footnote{Except for the case $\{y_t=0\}$, which is a null set in the model, and it causes identifiability issues for $h_t$. In practice, we use $\yts =\log(y^2_t+\epsilon)$.}. By storing $d_t$ and applying $x\mapsto\log(x^2)$ to the first equation of~\eqref{form:orig_model} we get the linearised form,
+\begin{align}
+\begin{split}\label{form:lin_model}
+\yts & = h_t+\ets, \\
+h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t,
+\end{split}
+\end{align}
+where the error term of the first equation has a $\log(\chi_1^2)$ distribution. The observed variable is $\yts$ and $h_t$ is the latent state.
 
 \subsection{Estimation overview}
 
-blabla
+\SV~models are an attractive alternative to GARCH type models, the main difference being that while the volatility of GARCH at $t+1$ is conditionally deterministic, given the information known at $t$, it is random in \SV.
+For a more in-depth comparison see, e.g.,~\citet{Harvey1994}.
+On the one hand, this lets \SV~fit the data better in some cases~\citep{Kim1998,Chan2016}, on the other hand, it makes its estimation more difficult. In the following parts, the fitting methods considered in the literature are briefly summarised.
 
 \subsubsection{Frequentist approach}
 

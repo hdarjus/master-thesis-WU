@@ -1,24 +1,21 @@
-% das Dokumentenformat
 \documentclass[a4paper, 12pt, twppages]{article}
 
-%\usepackage[english, ngerman]{babel}  % <-- f�r deutsche arbeit
-
-% wegen deutschen Umlauten - Details: http://www.golatex.de/usepackagelatin1inputenc-vs-usepackaget1fontenc-t7624.html
-\usepackage[T1]{fontenc}
-%\usepackage[ansinew]{inputenc} % auf Zeichencodierung der Datei achten! In TeXnicCenter im "Speichern Unter"-Dialog 'ANSI' ausw�hlen.
-\usepackage[utf8]{inputenc} % alternative Zeichencodierung 'UTF-8'
-
-%% IMAGE PACKAGE
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+%\usepackage{amsfonts}
+%\usepackage{latexsym}
+\usepackage{bm}
+\usepackage{hyperref}
 \usepackage{graphicx}
+\usepackage{eso-pic}  %% PACKAGE FOR THE BACKGROUNDPIC
+\usepackage{fancyhdr}  %% PACKAGE FOR THE HEADERS AND FOOTERS
+\usepackage{pdfpages}  %% PACKAGE TO INCLUDE A PDF FILE
+\usepackage{natbib}
 
-%% PACKAGE FOR THE BACKGROUNDPIC
-\usepackage{eso-pic}
-
-%% PACKAGE FOR THE HEADERS AND FOOTERS
-\usepackage{fancyhdr}
-
-%% PACKAGE TO INCLUDE A PDF FILE
-\usepackage{pdfpages}
+\newcommand{\comment}[1]{}
+\newcommand{\field}[1]{\mathbb{#1}} % requires amsfonts
+\newcommand{\pd}[2]{\frac{\partial#1}{\partial#2}}
 
 \newcommand\BackgroundPic{%
 \put(0,0){%
@@ -28,12 +25,13 @@
 \includegraphics[width=\paperwidth,height=\paperheight,keepaspectratio]{background.pdf}%
 \vfill
 }}}
-%\fancyhf{}% Clear all headers/footers
+\fancyhf{}% Clear all headers/footers
 %\renewcommand{\headrulewidth}{0pt}% No header rule
 %\renewcommand{\footrulewidth}{0pt}% No footer rule
 %\fancyfoot[L]{\hspace*{-16mm}\includegraphics[scale=0.3]{logoDepartment.pdf}}
 
 \includeonly{sections/01_introduction,sections/02_model,sections/03_implementation,sections/04_computations,sections/05_results}
+%\includeonly{sections/02_model}
 
 \begin{document}
 \includepdf[pages={1}]{scan-of-declaration-of-authorship.pdf}
@@ -117,7 +115,8 @@ Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et 
 \include{sections/04_computations}
 \include{sections/05_results}
 
-\bibliographystyle{plain}
+\nocite{*}
+\bibliographystyle{abbrvnat}
 \bibliography{references}
 
 \end{document}
