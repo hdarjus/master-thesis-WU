@@ -1,17 +1,15 @@
-\newcommand*{\SV}{SV}
-\newcommand*{\SVL}{SVL}
 \newcommand*{\yts}{y_t^\ast}
 \newcommand*{\ets}{\varepsilon_t^\ast}
 
 \section{Model}
 
-The Stochastic Volatility (\SV) model was introduced in the seminal work of~\citet{taylor1982financial}.
-\SV~aims at capturing time varying and clustered volatility using an AR(1) process.
-The model used in this thesis is the Stochastic Volatility with Leverage (\SVL), which, additional to the AR(1) process, also models the leverage effect by letting the stock return and the increment of the log variance have a constant correlation.
+The Stochastic Volatility (SV) model was introduced in the seminal work of~\citet{taylor1982financial}.
+By choosing SV, one aims at capturing time varying and clustered volatility using an AR(1) process.
+The model used in this thesis is the Stochastic Volatility with Leverage, which, additional to the AR(1) process, also models the leverage effect by letting the stock return and the increment of the log variance have a constant correlation.
 
 \subsection{Formulation}
 
-The \SVL~model in its canonical form, as formulated in~\citet{Omori2007}, is
+The SV model with leverage is, in its canonical form, as formulated in~\citet{Omori2007},
 \begin{equation}
 \begin{alignedat}{2}\label{form:orig_model}
 y_t & = \varepsilon_t\exp\left(h_t/2\right), && \quad t=1,\dots,n, \\
@@ -28,7 +26,9 @@ h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, && \quad t=1,\dots,n-1, \\
 \end{pmatrix},
 \end{alignedat}
 \end{equation}
-where the only observed variable is $y_t$, the demeaned log returns, and it is conditionally normally distributed, given $h_t$. The log variance, $\bm{h}$, is the latent vector, and it constitutes an AR(1) process with mean $\mu$, persistence $\phi$ and variance $\sigma^2$. Leverage is the fourth parameter, $\rho$, which is the correlation between $\varepsilon_t$ and $\eta_t$, i.e. the increment of the stock price and the increment of the log variance.
+where $n$ is the number of time points, the only observed variable is $y_t$, the demeaned log returns, and it is conditionally normally distributed, given $h_t$.
+The log variance, $\bm{h}$, is the latent vector, and it constitutes an AR(1) process with mean $\mu$, persistence $\phi$ and variance $\sigma^2$.
+Leverage is the fourth parameter, $\rho$, which is the correlation between $\varepsilon_t$ and $\eta_t$, i.e. the increment of the stock price and the increment of the log variance.
 
 The first equation in~\eqref{form:orig_model} is not linear in $h_t$, which makes the model difficult to estimate. For the ease of notation, let
 \begin{align*}
@@ -36,7 +36,7 @@ The first equation in~\eqref{form:orig_model} is not linear in $h_t$, which make
 d_t &=I(y_t\ge0)-I(y_t<0), \\
 \ets &=\log(\varepsilon^2_t),
 \end{align*}
-thus knowing $y_t$ is equivalent to knowing the pair $(\yts, d_t)$\footnote{Except for the case $\{y_t=0\}$, which is a null set in the model, and it causes identifiability issues for $h_t$. In practice, we use $\yts =\log(y^2_t+\epsilon)$.}. By storing $d_t$ and applying $x\mapsto\log(x^2)$ to the first equation of~\eqref{form:orig_model} we get the linearised form,
+thus knowing $y_t$ is equivalent to knowing the pair $(\yts, d_t)$\footnote{Except for the case $\{y_t=0\}$, which is a null set in the model, and it causes identifiability issues for $h_t$. In practice, we use $\yts =\log(y^2_t+\epsilon)$ with some small $\epsilon$ for robustness.}. By storing $d_t$ and applying $x\mapsto\log(x^2)$ to the first equation of~\eqref{form:orig_model} we get the linearised form,
 \begin{align}
 \begin{split}\label{form:lin_model}
 \yts & = h_t+\ets, \\
@@ -45,27 +45,52 @@ h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t,
 \end{align}
 where the error term of the first equation has a $\log(\chi_1^2)$ distribution. The observed variable is $\yts$ and $h_t$ is the latent state.
 
+\subsubsection{Other forms}
+
+The SV model with leverage was formulated differently in~\citet{Jacquier2004}, where $\varepsilon_t$ and $\eta_{t-1}$ are correlated.
+A comparison provided in~\citet{yu2005leverage} revealed that model~\ref{form:orig_model} is more attractive as it is an Euler approximation to the log-normal Ornstein--Uhlenbeck process, hence, the method that fits~\ref{form:orig_model} also fits the corresponding continuous time process with discretely sampled data.
+Moreover, in the alternative specification $y_t$ is not a martingale difference sequence, and $\rho$ has two roles: leverage and the skewness of $y_t\mid y_{t-1},\dots,y_1$, which makes it more difficult to interpret its value.
+Finally, an empirical comparison showed the model by~\citeauthor{Jacquier2004} to be inferior to~\ref{form:orig_model}.
+
 \subsection{Estimation overview}
 
-\SV~models are an attractive alternative to GARCH type models, the main difference being that while the volatility of GARCH at $t+1$ is conditionally deterministic, given the information known at $t$, it is random in \SV.
-For a more in-depth comparison see, e.g.,~\citet{Harvey1994}.
-On the one hand, this lets \SV~fit the data better in some cases~\citep{Kim1998,Chan2016}, on the other hand, it makes its estimation more difficult. In the following parts, the fitting methods considered in the literature are briefly summarised.
+SV models are an attractive alternative to GARCH type models, the main difference\footnote{For a more in-depth comparison see, e.g.,~\citet{Harvey1994}.} being that while the volatility of GARCH at $t+1$ is conditionally deterministic, given the information known at $t$, it is random in SV.
+On the one hand, this lets SV fit the data better in some cases~\citep{Kim1998,Chan2016}, on the other hand, it makes its estimation more difficult. In the following parts, the fitting methods for SV without leverage considered in the literature are briefly summarised.
 
-\subsubsection{Frequentist approach}
+\subsubsection{Maximum likelihood estimation}
 
-Maximum likelihood, it doesn't work
+Let $\bm{y}=(y_1,\dots,y_n)$.
+In order to obtain a ML estimate for $(\phi,\sigma^2,\rho,\mu)$, we need to evaluate the likelihood function $\ell(\phi,\sigma^2,\rho,\mu\mid\bm{y})$, for which we need to integrate over the space of vector $\bm{h}$.
+This is unfortunately difficult due to the non-linear dependence between $y_t$ and $h_t$, or, in the linear form, due to the non-Gaussian error term $\ets$.
+
+The issue of non-normality was resolved in~\citet{Harvey1994} using a Gaussian approximation to $\ets$, i.e. by matching the first two moments of the $\log(\chi_1^2)$ distribution.
+Then, in the resulting approximate model, using a Kalman filter to integrate over $\bm{h}$, a quasi-likelihood function can be calculated, and, after maximisation, a quasi-maximum likelihood estimate can be obtained.
+This estimator is consistent and asymptotically normally distributed, but it has bad performance in small samples because the $\ets$ is poorly approximated by the normal distribution~\citep{Kim1998}.
 
 \subsubsection{Bayesian approach}
 
-Single move
+The lack of a closed form likelihood function also means that there are no closed form posteriors for the model.
+This suggests the usage of Markov chain Monte Carlo algorithms, which, with the help of Bayes' theorem, make it possible to draw samples from the posterior distribution of the latent variables and the parameters.
+With enough such samples we get a picture of these distributions.
+For an introduction, see, e.g.,~\citet{Geyer2011}.
 
-Multi move, normal estimation
+In~\citet{Kim1998} two different Bayesian ideas were compared for SV without leverage based on how the latent variables are sampled.
+A single move (one-at-a-time volatility update) sampler was introduced first that draws $h_t$ from $h_t\mid\bm{h}_{-t},\bm{y},\phi,\sigma^2,\mu$ one by one, where $\bm{h}_{-t}$ is $\bm{h}$ excluding $h_t$.
+Due to the high intercorrelation in $\bm{h}$, slow convergence and poor mixing characterize this approach even though the algorithm used by~\citeauthor{Kim1998} performs better than the other ones in the literature~\citep{shephard1993fitting,jarquier1994bayesian,shephard1994comment,shephard1997likelihood,geweke1994bayesian}.
 
-Conditional Gaussian state space form
+To avoid the issues with high intercorrelation in $\bm{h}$, a multi-move sampler was used that draws $\bm{h}$ from $\bm{h}\mid\bm{y},\phi,\sigma^2,\mu$ at once.
+By approximating the marginal distribution of $\ets$ with a $K=7$ component mixture of normals,~\citeauthor{Kim1998} managed to reduce the task to the known framework of conditionally Gaussian state spaces (???).
+Since the marginal of $\ets$ does not include any model-dependent values, this mixture of normals can be specified before fitting the model.
+The approximation errors to the original SV model can be corrected for, by a re-weighting scheme.
+However, this correction did not change the results significantly due to the good choice of the mixture approximation.
 
-Matching parameters with papers' models can go to an appendix?
+Matching parameters with papers' models can go to an appendix???
 
-\subsection[MCMC Algorithm]{Markov Chain Monte Carlo Algorithm}
+\subsection[Sampling algorithm]{Approximate, multi-move sampler}
+
+Both the single move and the multi-move samplers were generalised to SV with leverage in~\citet{Omori2007}.
+There, for the multi-move case, a $K=10$ component mixture was found to give a better approximation to the $\log(\chi^2_1)$ distribution, and the re-weighting scheme did not have much effect on the results.
+The next sections provide the details of the approximate model and the multi-move sampling algorithm.
 
 Steps overview
 
