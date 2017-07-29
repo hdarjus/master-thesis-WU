@@ -70,7 +70,7 @@ This estimator is consistent and asymptotically normally distributed, but it has
 \subsubsection{Bayesian approach}
 
 The lack of a closed form likelihood function also means that there are no closed form posteriors for the model.
-This suggests the usage of Markov chain Monte Carlo algorithms, which, with the help of Bayes' theorem, make it possible to draw samples from the posterior distribution of the latent variables and the parameters.
+This suggests the usage of Markov chain Monte Carlo algorithms (MCMC), which, with the help of Bayes' theorem, make it possible to draw samples from the posterior distribution of the latent variables and the parameters.
 With enough such samples we get a picture of these distributions.
 For an introduction, see, e.g.,~\citet{Geyer2011}.
 
@@ -88,10 +88,24 @@ Matching parameters with papers' models can go to an appendix???
 
 \subsection[Sampling algorithm]{Approximate, multi-move sampler}
 
-Both the single move and the multi-move samplers were generalised to SV with leverage in~\citet{Omori2007}.
-There, for the multi-move case, a $K=10$ component mixture was found to give a better approximation to the $\log(\chi^2_1)$ distribution, and the re-weighting scheme did not have much effect on the results.
-The next sections provide the details of the approximate model and the multi-move sampling algorithm.
+Both the single move and the multi-move samplers were generalised to SV with leverage in~\citet{Omori2007}, and a particle filtering\footnote{Introductory book ???} method was also derived.
+In this work, we favor MCMC methods over sequential Monte Carlo (particle filtering) due to the availability of computers with strong processors (wu cloud ???), and, due to its better sampling efficiency, the multi-move sampler was chosen over the single move sampler for fitting the model.
+
+Bivariate approximation, table of constants
+
+There, a $K=10$ component mixture was found to give a better approximation (plots???) to the $\log(\chi^2_1)$ distribution, and the re-weighting scheme did not have significant effect on the results.
 
 Steps overview
 
+\begin{enumerate}
+	\item Draw $\bm{s}\mid\bm{y}^\ast,\bm{d},\bm{h},\mu,\bm\theta$,
+	\item Draw $(\bm\theta,\bm h,\mu)\mid\bm y,\bm d,\bm s$,
+	\begin{enumerate}
+		\item Draw $\bm\theta\mid\bm{y}^\ast,\bm{d}$,
+		\item Draw $(\bm{h},\mu)\mid\bm{y}^\ast,\bm{d},\bm\theta$.
+	\end{enumerate}
+\end{enumerate}
+
 Steps in detail in subsubsections
+
+Re-weighting
