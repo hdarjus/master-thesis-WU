@@ -33,7 +33,7 @@ Leverage is the fourth parameter, $\rho$, which is the correlation between $\var
 The first equation in~\eqref{form:orig_model} is not linear in $h_t$, which makes the model difficult to estimate. For the ease of notation, let
 \begin{align*}
 \yts &=\log(y^2_t), \\
-d_t &=I(y_t\ge0)-I(y_t<0), \\
+d_t &=I(y_t\ge0)-I(y_t<0), \qquad\text{$y_t$'s sign,} \\
 \ets &=\log(\varepsilon^2_t),
 \end{align*}
 thus knowing $y_t$ is equivalent to knowing the pair $(\yts, d_t)$\footnote{Except for the case $\{y_t=0\}$, which is a null set in the model, and it causes identifiability issues for $h_t$. In practice, we use $\yts =\log(y^2_t+\epsilon)$ with some small $\epsilon$ for robustness.}. By storing $d_t$ and applying $x\mapsto\log(x^2)$ to the first equation of~\eqref{form:orig_model} we get the linearised form,
@@ -74,28 +74,112 @@ This suggests the usage of Markov chain Monte Carlo algorithms (MCMC), which, wi
 With enough such samples we get a picture of these distributions.
 For an introduction, see, e.g.,~\citet{Geyer2011}.
 
-In~\citet{Kim1998} two different Bayesian ideas were compared for SV without leverage based on how the latent variables are sampled.
+In~\citet{Kim1998}, two different Bayesian ideas were compared for SV without leverage based on how the latent variables are sampled.
 A single move (one-at-a-time volatility update) sampler was introduced first that draws $h_t$ from $h_t\mid\bm{h}_{-t},\bm{y},\phi,\sigma^2,\mu$ one by one, where $\bm{h}_{-t}$ is $\bm{h}$ excluding $h_t$.
-Due to the high intercorrelation in $\bm{h}$, slow convergence and poor mixing characterize this approach even though the algorithm used by~\citeauthor{Kim1998} performs better than the other ones in the literature~\citep{shephard1993fitting,jarquier1994bayesian,shephard1994comment,shephard1997likelihood,geweke1994bayesian}.
+Due to the high intercorrelation in $\bm{h}$, slow convergence and poor mixing characterise this approach even though the algorithm used by~\citeauthor{Kim1998} performs better than the other ones in the literature~\citep{shephard1993fitting,jarquier1994bayesian,shephard1994comment,shephard1997likelihood,geweke1994bayesian}.
 
 To avoid the issues with high intercorrelation in $\bm{h}$, a multi-move sampler was used that draws $\bm{h}$ from $\bm{h}\mid\bm{y},\phi,\sigma^2,\mu$ at once.
-By approximating the marginal distribution of $\ets$ with a $K=7$ component mixture of normals,~\citeauthor{Kim1998} managed to reduce the task to the known framework of conditionally Gaussian state spaces (???).
+By approximating the marginal distribution of $\ets$ with a $K=7$ component mixture of normals,~\citeauthor{Kim1998} managed to reduce the task to the known framework of conditionally Gaussian state spaces\footnote{For an introduction see~\citet{Kitagawa1996}.}.
 Since the marginal of $\ets$ does not include any model-dependent values, this mixture of normals can be specified before fitting the model.
-The approximation errors to the original SV model can be corrected for, by a re-weighting scheme.
+The approximation errors to the original SV model can be corrected for, by a reweighting scheme.
 However, this correction did not change the results significantly due to the good choice of the mixture approximation.
 
 Matching parameters with papers' models can go to an appendix???
 
 \subsection[Sampling algorithm]{Approximate, multi-move sampler}
 
-Both the single move and the multi-move samplers were generalised to SV with leverage in~\citet{Omori2007}, and a particle filtering\footnote{Introductory book ???} method was also derived.
+Both the single move and the multi-move samplers were generalised to SV with leverage in~\citet{Omori2007}, and a particle filtering\footnote{For an introduction see~\citet{Johannes2009}.} method was also derived.
 In this work, we favor MCMC methods over sequential Monte Carlo (particle filtering) due to the availability of computers with strong processors (wu cloud ???), and, due to its better sampling efficiency, the multi-move sampler was chosen over the single move sampler for fitting the model.
 
-Bivariate approximation, table of constants
+\subsubsection{Bivariate normal approximation}
 
-There, a $K=10$ component mixture was found to give a better approximation (plots???) to the $\log(\chi^2_1)$ distribution, and the re-weighting scheme did not have significant effect on the results.
+Due to the correlation between $\varepsilon_t$ and $\eta_t$, approximating $\ets$ affects $\eta_t$ as well.
+Thus,~\citeauthor{Omori2007} used a mixture of bivariate normals as an approximation to the conditional distribution of the pair $(\ets, \eta_t)$.
+Let $f(X)$ and $\hat f(X)$ denote the exact and the approximating densities of the random variable $X$, respectively.
 
-Steps overview
+In order to derive the approximation, we first decompose the bivariate conditional density and then approximate the parts separately,
+\begin{align}
+f(\ets,\eta_t\mid d_t,\rho,\sigma) &= f(\ets\mid d_t,\rho,\sigma)f(\eta_t\mid\ets,d_t,\rho,\sigma),\nonumber \\
+&= f(\ets)f(\eta_t\mid\ets,d_t,\rho,\sigma)\label{eq:decomp},
+\end{align}
+because the marginal of $\ets$ is independent of $d_t$, $\rho$, and $\sigma$.
+\citeauthor{Omori2007} now used an improved normal mixture approximation to the marginal $f(\ets)$ with $K=10$,
+\begin{equation}\label{eq:ets}
+\hat f(\ets)=\sum_{j=1}^{10}p_jf\left(\mathcal{N}\left(m_j,v_j^2\right)\right),
+\end{equation}
+where $\mathcal{N}\left(m_j,v_j^2\right)$ denotes a normally distributed random variable with mean $m_j$ and variance $v_j^2$.
+The constants $m_j$, $p_j$ and $v_j$ are specified in Table~\ref{tab:constants}.
+
+The conditional distribution of $\eta_t$ is
+\begin{equation}\label{eq:eta}
+\eta_t\mid\ets,d_t,\rho,\sigma\sim\mathcal{N}\left(d_t\rho\sigma\exp(\ets/2),\sigma^2\left(1-\rho^2\right)\right),
+\end{equation}
+where the $\exp(\ets)$ term introduces difficulties.
+These are mitigated by a linear approximation
+\begin{equation}\label{eq:etslinear}
+\exp(\ets)\approx\exp(m_j)(a_j+b_j(\ets-m_j))
+\end{equation}
+when the $j$th mixture component is used for $\ets$, i.e. $\ets\sim\mathcal{N}(m_j,v_j^2)$.
+The constants $a_j$ and $b_j$ were found by minimising the mean square norm 
+\begin{equation*}
+\E{\left[\exp(\ets)-\exp(m_j)(a+b(\ets-m_j))\right]^2}
+\end{equation*}
+w.r.t. $a$ and $b$, separately for each $j$, and they are listed in Table~\ref{tab:constants}.
+
+\begin{table}[h!]
+	\centering
+	\caption{Constants of the bivariate approximation~\citep{Omori2007}.}
+	\label{tab:constants}
+	\begin{tabular}{cccccc}
+		$j$                       & $p_j$    & $m_j$      & $v_j^2$ & $a_j$    & $b_j$    \\ \hline
+		\multicolumn{1}{l|}{1}  & 0.00609 & 1.92677   & 0.11265                & 1.01418 & 0.50710 \\
+		\multicolumn{1}{l|}{2}  & 0.04775 & 1.34744   & 0.17788                & 1.02248 & 0.51124 \\
+		\multicolumn{1}{l|}{3}  & 0.13057 & 0.73504   & 0.26768                & 1.03403 & 0.51701 \\
+		\multicolumn{1}{l|}{4}  & 0.20674 & 0.02266   & 0.40611                & 1.05207 & 0.52604 \\
+		\multicolumn{1}{l|}{5}  & 0.22715 & -0.85173  & 0.62699                & 1.08153 & 0.54076 \\
+		\multicolumn{1}{l|}{6}  & 0.18842 & -1.97278  & 0.98583                & 1.13114 & 0.56557 \\
+		\multicolumn{1}{l|}{7}  & 0.12047 & -3.46788  & 1.57469                & 1.21754 & 0.60877 \\
+		\multicolumn{1}{l|}{8}  & 0.05591 & -5.55246  & 2.54498                & 1.37454 & 0.68728 \\
+		\multicolumn{1}{l|}{9}  & 0.01575 & -8.68384  & 4.16591                & 1.68327 & 0.84163 \\
+		\multicolumn{1}{l|}{10} & 0.00115 & -14.65000 & 7.33342                & 2.50097 & 1.25049
+	\end{tabular}
+\end{table}
+
+By combining~\eqref{eq:decomp},~\eqref{eq:ets},~\eqref{eq:eta} and~\eqref{eq:etslinear}, we get the final approximation
+\begin{multline*}
+\hat f(\ets,\eta_t\mid d_t,\rho,\sigma) = \hat f(\ets)\hat f(\eta_t\mid\ets,d_t,\rho,\sigma) = \sum_{j=1}^{10}p_jf\left(\mathcal{N}\left(m_j,v_j^2\right)\right)\cdot \\
+\cdot f\left(\mathcal{N}\left(d_t\rho\sigma\exp(m_j)(a_j+b_j(\ets-m_j)),\sigma^2\left(1-\rho^2\right)\right)\right).
+\end{multline*}
+
+Plots about how good this approximation is ???
+
+\subsubsection{Correcting for misspecification}
+
+By using an approximate distribution for the true $f(\ets,\eta_t\mid d_t,\rho,\sigma)$, we misspecified the model, and our draws for $\bm{h}$, $\bm{\theta}$ and $\mu$ are from an approximate posterior density as well.
+One can correct this and produce draws from the true posterior $\pi(\bm{h},\bm{\theta},\mu\mid\bm{y})$ by calculating weights $w_k (k=1,\dots,T)$ for all the draws, and resample the sampled numbers according to the weights.
+After obtaining the error terms
+\begin{align*}
+\varepsilon_t^{\ast k} &= y_t^\ast-h_t^k, \\
+\eta_t^k &= (h_{t+1}^k-\mu^k)-\phi^k(h_t^k-\mu^k).
+\end{align*}
+Then, we compute the non-normalised weights
+\begin{equation*}
+w_k^\ast=\frac{f(\varepsilon_t^{\ast k},\eta_t^k\mid d_t,\mu^k,\bm\theta^k)}{\hat f(\varepsilon_t^{\ast k},\eta_t^k\mid d_t,\mu^k,\bm\theta^k)},
+\end{equation*}
+where $f(\varepsilon_t^{\ast k},\eta_t^k\mid d_t,\mu^k,\bm\theta^k)$ denotes the density $f(\varepsilon_t^\ast,\eta_t\mid d_t,\mu,\bm\theta)$ evaluated at the values $\varepsilon_t^{\ast k},\eta_t^k,d_t,\mu^k,\bm\theta^k$, and $\hat f$ is evaluated using the approximate density.
+Finally, we normalise the weights
+\begin{equation*}
+w_k=\frac{w_k^\ast}{\sum_{l=1}^{T}w_l^\ast}
+\end{equation*}
+to get the probabilities that we use for resampling the existing draws.
+\citeauthor{Omori2007} found that the weights have quite small variance which makes the effect this correction procedure modest.
+
+\subsubsection[State space form]{Conditional Gaussian state space form}
+
+???
+Now that we have the approximating model, we can reformulate it as a Gaussian state space model conditional on the mixture state...
+
+\subsubsection{Steps overview}
 
 \begin{enumerate}
 	\item Draw $\bm{s}\mid\bm{y}^\ast,\bm{d},\bm{h},\mu,\bm\theta$,
@@ -107,5 +191,3 @@ Steps overview
 \end{enumerate}
 
 Steps in detail in subsubsections
-
-Re-weighting
