@@ -191,5 +191,7 @@ ggplot(pars %>%
   stat_density(aes(x = Value, fill = ..density.., y = Number, group = Company), geom = "raster", position = "identity") +
   facet_grid(Period ~ Country) +
   theme_bw() +
-  theme(legend.position = "right") +
+  theme(strip.text.y = element_text(angle = 0), legend.position = "right",
+        axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+  ylab("Company") +
   guides(col = guide_legend(ncol = 1))
