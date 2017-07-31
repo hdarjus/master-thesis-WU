@@ -95,34 +95,38 @@ In this work, we favor MCMC methods over sequential Monte Carlo (particle filter
 
 Due to the correlation between $\varepsilon_t$ and $\eta_t$, approximating $\ets$ affects $\eta_t$ as well.
 Thus,~\citeauthor{Omori2007} used a mixture of bivariate normals as an approximation to the conditional distribution of the pair $(\ets, \eta_t)$.
-Let $f(X)$ and $\hat f(X)$ denote the exact and the approximating densities of the random variable $X$, respectively.
+Let $(\xi_t,\nu_t\mid d_t,\rho,\sigma)$ denote the approximate random variable to $(\ets,\eta_t\mid d_t,\rho,\sigma)$, and let $f_X$ denote the density of the random variable $X$.
 
 In order to derive the approximation, we first decompose the bivariate conditional density and then approximate the parts separately,
 \begin{align}
-f(\ets,\eta_t\mid d_t,\rho,\sigma) &= f(\ets\mid d_t,\rho,\sigma)f(\eta_t\mid\ets,d_t,\rho,\sigma),\nonumber \\
-&= f(\ets)f(\eta_t\mid\ets,d_t,\rho,\sigma)\label{eq:decomp},
+f_{\ets,\eta_t\mid d_t,\rho,\sigma} &= f_{\ets\mid d_t,\rho,\sigma}\cdot f_{\eta_t\mid\ets,d_t,\rho,\sigma},\nonumber \\
+&= f_{\ets}\cdot f_{\eta_t\mid\ets,d_t,\rho,\sigma}\label{eq:decomp},
 \end{align}
 because the marginal of $\ets$ is independent of $d_t$, $\rho$, and $\sigma$.
 \citeauthor{Omori2007} now used an improved normal mixture approximation to the marginal $f(\ets)$ with $K=10$,
 \begin{equation}\label{eq:ets}
-\hat f(\ets)=\sum_{j=1}^{10}p_jf\left(\mathcal{N}\left(m_j,v_j^2\right)\right),
+f_{\xi_t}\triangleq\sum_{j=1}^{10}p_jf_{\mathcal{N}\left(m_j,v_j^2\right)},
 \end{equation}
 where $\mathcal{N}\left(m_j,v_j^2\right)$ denotes a normally distributed random variable with mean $m_j$ and variance $v_j^2$.
 The constants $m_j$, $p_j$ and $v_j$ are specified in Table~\ref{tab:constants}.
 
 The conditional distribution of $\eta_t$ is
-\begin{equation}\label{eq:eta}
+\begin{equation*}
 \eta_t\mid\ets,d_t,\rho,\sigma\sim\mathcal{N}\left(d_t\rho\sigma\exp(\ets/2),\sigma^2\left(1-\rho^2\right)\right),
+\end{equation*}
+thus, we could use
+\begin{equation}\label{eq:eta}
+\nu_t\mid\xi_t,d_t,\rho,\sigma\sim\mathcal{N}\left(d_t\rho\sigma\exp(\xi_t/2),\sigma^2\left(1-\rho^2\right)\right),
 \end{equation}
-where the $\exp(\ets)$ term introduces difficulties.
+but the term $\exp(\xi_t/2)$ introduces difficulties.
 These are mitigated by a linear approximation
 \begin{equation}\label{eq:etslinear}
-\exp(\ets)\approx\exp(m_j)(a_j+b_j(\ets-m_j))
+\exp(\xi_t/2)\approx\exp(m_j/2)(a_j+b_j(\xi_t-m_j))
 \end{equation}
-when the $j$th mixture component is used for $\ets$, i.e. $\ets\sim\mathcal{N}(m_j,v_j^2)$.
+when the $j$th mixture component is used for $\xi_t$, i.e. $\xi_t\sim\mathcal{N}(m_j,v_j^2)$.
 The constants $a_j$ and $b_j$ were found by minimising the mean square norm 
 \begin{equation*}
-\E{\left[\exp(\ets)-\exp(m_j)(a+b(\ets-m_j))\right]^2}
+\E{\left[\exp(\xi_t/2)-\exp(m_j/2)(a+b(\xi_t-m_j))\right]^2}
 \end{equation*}
 w.r.t. $a$ and $b$, separately for each $j$, and they are listed in Table~\ref{tab:constants}.
 
@@ -146,38 +150,79 @@ w.r.t. $a$ and $b$, separately for each $j$, and they are listed in Table~\ref{t
 \end{table}
 
 By combining~\eqref{eq:decomp},~\eqref{eq:ets},~\eqref{eq:eta} and~\eqref{eq:etslinear}, we get the final approximation
-\begin{multline*}
-\hat f(\ets,\eta_t\mid d_t,\rho,\sigma) = \hat f(\ets)\hat f(\eta_t\mid\ets,d_t,\rho,\sigma) = \sum_{j=1}^{10}p_jf\left(\mathcal{N}\left(m_j,v_j^2\right)\right)\cdot \\
-\cdot f\left(\mathcal{N}\left(d_t\rho\sigma\exp(m_j)(a_j+b_j(\ets-m_j)),\sigma^2\left(1-\rho^2\right)\right)\right).
-\end{multline*}
+\begin{align*}
+f_{\ets,\eta_t\mid d_t,\rho,\sigma} &\approx f_{\xi_t,\nu_t\mid d_t,\rho,\sigma}, \\
+&= f_{\xi_t}\cdot f_{\nu_t\mid\xi_t,d_t,\rho,\sigma}, \\
+&= \sum_{j=1}^{10}p_jf_{\mathcal{N}\left(m_j,v_j^2\right)}\cdot f_{\mathcal{N}\left(d_t\rho\sigma\exp(m_j/2)(a_j+b_j(\xi_t-m_j)),\sigma^2\left(1-\rho^2\right)\right)}.
+\end{align*}
 
 Plots about how good this approximation is ???
 
 \subsubsection{Correcting for misspecification}
 
-By using an approximate distribution for the true $f(\ets,\eta_t\mid d_t,\rho,\sigma)$, we misspecified the model, and our draws for $\bm{h}$, $\bm{\theta}$ and $\mu$ are from an approximate posterior density as well.
-One can correct this and produce draws from the true posterior $\pi(\bm{h},\bm{\theta},\mu\mid\bm{y})$ by calculating weights $w_k (k=1,\dots,T)$ for all the draws, and resample the sampled numbers according to the weights.
+By using an approximate distribution for the true $f_{\ets,\eta_t\mid d_t,\rho,\sigma}$, we misspecified the model, and our draws for $\bm{h}$, $\bm{\theta}$ and $\mu$ are from an approximate posterior density as well.
+One can correct this and produce draws from the true posterior $\pi_{\bm{h},\bm{\theta},\mu\mid\bm{y}}$ by calculating weights $w_k\ (k=1,\dots,T)$ for all the draws, and resample the sampled numbers according to the weights.
 After obtaining the error terms
 \begin{align*}
-\varepsilon_t^{\ast k} &= y_t^\ast-h_t^k, \\
-\eta_t^k &= (h_{t+1}^k-\mu^k)-\phi^k(h_t^k-\mu^k).
+\xi_t^k &= y_t^\ast-h_t^k, \\
+\nu_t^k &= (h_{t+1}^k-\mu^k)-\phi^k(h_t^k-\mu^k).
 \end{align*}
 Then, we compute the non-normalised weights
 \begin{equation*}
-w_k^\ast=\frac{f(\varepsilon_t^{\ast k},\eta_t^k\mid d_t,\mu^k,\bm\theta^k)}{\hat f(\varepsilon_t^{\ast k},\eta_t^k\mid d_t,\mu^k,\bm\theta^k)},
+w_k^\ast=\frac{f_{\ets,\eta_t\mid d_t,\mu,\bm\theta}\left(\xi_t^k,\nu_t^k\mid d_t,\mu^k,\bm\theta^k\right)}{f_{\xi_t,\nu_t\mid d_t,\mu,\bm\theta}\left(\xi_t^k,\nu_t^k\mid d_t,\mu^k,\bm\theta^k\right)},
 \end{equation*}
-where $f(\varepsilon_t^{\ast k},\eta_t^k\mid d_t,\mu^k,\bm\theta^k)$ denotes the density $f(\varepsilon_t^\ast,\eta_t\mid d_t,\mu,\bm\theta)$ evaluated at the values $\varepsilon_t^{\ast k},\eta_t^k,d_t,\mu^k,\bm\theta^k$, and $\hat f$ is evaluated using the approximate density.
 Finally, we normalise the weights
 \begin{equation*}
 w_k=\frac{w_k^\ast}{\sum_{l=1}^{T}w_l^\ast}
 \end{equation*}
 to get the probabilities that we use for resampling the existing draws.
-\citeauthor{Omori2007} found that the weights have quite small variance which makes the effect this correction procedure modest.
+\citeauthor{Omori2007} found that the weights have quite small variance which makes the effect of this correction procedure modest.
 
 \subsubsection[State space form]{Conditional Gaussian state space form}
 
-???
-Now that we have the approximating model, we can reformulate it as a Gaussian state space model conditional on the mixture state...
+Due to the normal mixture approximation, a new variable $\bm s=(s_1,\dots,s_T)$ has been introduced to the model, the vector of mixture components, one component for each time point. Given $s_t=j$, we end up with a linear model with normal errors,
+\begin{equation}
+\begin{alignedat}{1}\label{form:appr_model}
+\yts & = h_t+\xi_t, \quad t=1,\dots,n, \\
+h_{t+1} & = \mu+\phi(h_t-\mu)+\nu_t, \quad t=1,\dots,n-1, \\
+\begin{pmatrix}
+\xi_t \\
+\nu_t
+\end{pmatrix} &\overset{d}{=}
+\begin{pmatrix}
+m_j \\
+a_j\gamma_t^j
+\end{pmatrix} +
+\begin{pmatrix}
+v_j && 0 \\
+b_jv_j\gamma_t^j && \sigma\sqrt{1-\rho^2}
+\end{pmatrix}
+\begin{pmatrix}
+z_t^1 \\
+z_t^2
+\end{pmatrix}, \\
+\begin{pmatrix}
+z_t^1 \\
+z_t^2
+\end{pmatrix}
+&\sim\text{ i.i.d. }\mathcal{N}_2\left(\bm{0},\bm{I_2}\right),
+\end{alignedat}
+\end{equation}
+where $\gamma_t^j\triangleq d_t\rho\sigma\exp(m_j/2)$ and $\overset{d}{=}$ means equivalence in distribution. Note that $(\xi_t,\nu_t)$ depends on $d_t,\rho,\sigma$ and $s_t$.
+
+In order to reduce the estimation of model~\eqref{form:appr_model} to the estimation of a well-known framework, we first reformulate~\eqref{form:appr_model} as
+\begin{equation}\label{form:gauss_model}
+\begin{pmatrix}
+\yts \\
+h_{t+1} \\
+\tilde{\mu}_{t+1}
+\end{pmatrix} =
+\begin{pmatrix}
+h_t \\
+\tilde{\mu}_t+\phi(h_t-\tilde{\mu}_t)
+\end{pmatrix}
+\end{equation}
+Note that $\tilde{\mu}_t$ is constant through $t$. Setting $\mu\equiv\tilde{\mu}_t$, assuming $h_1\mid(\mu\sigma\phi)\sim\mathcal{N}(\mu,\sigma^2/(1-\phi^2))$ initialises the latent vector and that $\mu$ has a normal prior, model~\eqref{form:gauss_model} is a so-called Gaussian state space model. 
 
 \subsubsection{Steps overview}
 
