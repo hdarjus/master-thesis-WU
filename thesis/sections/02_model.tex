@@ -161,7 +161,7 @@ Plots about how good this approximation is ???
 \subsubsection{Correcting for misspecification}
 
 By using an approximate distribution for the true $f_{\ets,\eta_t\mid d_t,\rho,\sigma}$, we misspecified the model, and our draws for $\bm{h}$, $\bm{\theta}$ and $\mu$ are from an approximate posterior density as well.
-One can correct this and produce draws from the true posterior $\pi_{\bm{h},\bm{\theta},\mu\mid\bm{y}}$ by calculating weights $w_k\ (k=1,\dots,T)$ for all the draws, and resample the sampled numbers according to the weights.
+One can correct this and produce draws from the true posterior $f_{\bm{h},\bm{\theta},\mu\mid\bm{y}}$ by calculating weights $w_k\ (k=1,\dots,T)$ for all the draws, and resample the sampled numbers according to the weights.
 After obtaining the error terms
 \begin{align*}
 \xi_t^k &= y_t^\ast-h_t^k, \\
@@ -182,7 +182,7 @@ to get the probabilities that we use for resampling the existing draws.
 
 Due to the normal mixture approximation, a new variable $\bm s=(s_1,\dots,s_T)$ has been introduced to the model, the vector of mixture components, one component for each time point. Given $s_t=j$, we end up with a linear model with normal errors,
 \begin{equation}
-\begin{alignedat}{1}\label{form:appr_model}
+\begin{alignedat}{2}\label{form:appr_model}
 \yts & = h_t+\xi_t, \quad t=1,\dots,n, \\
 h_{t+1} & = \mu+\phi(h_t-\mu)+\nu_t, \quad t=1,\dots,n-1, \\
 \begin{pmatrix}
@@ -208,24 +208,53 @@ z_t^2
 &\sim\text{ i.i.d. }\mathcal{N}_2\left(\bm{0},\bm{I_2}\right),
 \end{alignedat}
 \end{equation}
-where $\gamma_t^j\triangleq d_t\rho\sigma\exp(m_j/2)$ and $\overset{d}{=}$ means equivalence in distribution. Note that $(\xi_t,\nu_t)$ depends on $d_t,\rho,\sigma$ and $s_t$.
+where $\gamma_t^j\triangleq d_t\rho\sigma\exp(m_j/2)$ and ``$\overset{d}{=}$'' means equivalence in distribution. Note that $(\xi_t,\nu_t)$ depends on $d_t,\rho,\sigma$ and $s_t$.
 
-In order to reduce the estimation of model~\eqref{form:appr_model} to the estimation of a well-known framework, we first reformulate~\eqref{form:appr_model} as
-\begin{equation}\label{form:gauss_model}
+In order to reduce the estimation of model~\eqref{form:appr_model} to the estimation of a well-known framework, we first reformulate~\eqref{form:appr_model} equivalently as
+\begin{equation}
+\begin{alignedat}{2}\label{form:gauss_model}
 \begin{pmatrix}
 \yts \\
 h_{t+1} \\
 \tilde{\mu}_{t+1}
-\end{pmatrix} =
+\end{pmatrix} &=
 \begin{pmatrix}
 h_t \\
-\tilde{\mu}_t+\phi(h_t-\tilde{\mu}_t)
-\end{pmatrix}
+\tilde{\mu}_t+\phi(h_t-\tilde{\mu}_t) \\
+\tilde \mu_t
+\end{pmatrix} +
+\begin{pmatrix}
+\xi_t \\
+\nu_t \\
+0
+\end{pmatrix}, \quad t=1,\dots,T-1, \\
+y_T^\ast &= h_T+\xi_T.
+\end{alignedat}
 \end{equation}
-Note that $\tilde{\mu}_t$ is constant through $t$. Setting $\mu\equiv\tilde{\mu}_t$, assuming $h_1\mid(\mu\sigma\phi)\sim\mathcal{N}(\mu,\sigma^2/(1-\phi^2))$ initialises the latent vector and that $\mu$ has a normal prior, model~\eqref{form:gauss_model} is a so-called Gaussian state space model. 
+Note that $\tilde{\mu}_t$ is constant through $t$.
+Since $(\xi_t,\nu_t,0)$ is a (degenerate) normal white-noise series, setting $\mu\equiv\tilde{\mu}_t$, and assuming a normal prior for $h_1\mid(\mu,\sigma,\phi)$ and $\mu$, model~\eqref{form:gauss_model} is a linear Gaussian state space model with hidden state $(h_t,\tilde{\mu}_t)$.
+We need this ``trick'' with the inclusion of $\mu$ in the hidden state in order to match the general form of models that can be fitted with the algorithm in~\citet{de1995simulation}.
+We will adapt the priors of the latent state used by~\citeauthor{Omori2007}, namely, for arbitrary constant $\sigma_0$,
+\begin{equation*}
+\begin{pmatrix}
+h_1 \\
+\tilde\mu_1
+\end{pmatrix} \sim
+\mathcal{N}\left(
+\begin{pmatrix}
+\mu_0 \\
+\mu_0
+\end{pmatrix},
+\begin{pmatrix}
+\sigma^2/(1-\phi^2)+\sigma_0^2 & \sigma_0^2 \\
+\sigma_0^2 & \sigma_0^2
+\end{pmatrix}
+\right).
+\end{equation*}
 
 \subsubsection{Steps overview}
 
+After initialising all the variables and parameters, there are three main steps when estimating a conditional linear Gaussian state space such as model~\ref{form:gauss_model}:
 \begin{enumerate}
 	\item Draw $\bm{s}\mid\bm{y}^\ast,\bm{d},\bm{h},\mu,\bm\theta$,
 	\item Draw $(\bm\theta,\bm h,\mu)\mid\bm y,\bm d,\bm s$,
