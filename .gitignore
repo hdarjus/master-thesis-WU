@@ -257,3 +257,7 @@ TSWLatexianTemp*
 # expex forward references with \gathertags
 *-tags.tex
 
+# misc
+*.RDS
+*.png
+*.pdf
