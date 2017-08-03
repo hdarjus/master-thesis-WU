@@ -52,7 +52,7 @@ A comparison provided in~\citet{yu2005leverage} revealed that model~\ref{form:or
 Moreover, in the alternative specification $y_t$ is not a martingale difference sequence, and $\rho$ has two roles: leverage and the skewness of $y_t\mid y_{t-1},\dots,y_1$, which makes it more difficult to interpret its value.
 Finally, an empirical comparison showed the model by~\citeauthor{Jacquier2004} to be inferior to~\ref{form:orig_model}.
 
-\subsection{Estimation overview}
+\subsection{Estimation without leverage}
 
 SV models are an attractive alternative to GARCH type models, the main difference\footnote{For a more in-depth comparison see, e.g.,~\citet{Harvey1994}.} being that while the volatility of GARCH at $t+1$ is conditionally deterministic, given the information known at $t$, it is random in SV.
 On the one hand, this lets SV fit the data better in some cases~\citep{Kim1998,Chan2016}, on the other hand, it makes its estimation more difficult. In the following parts, the fitting methods for SV without leverage considered in the literature are briefly summarised.
@@ -81,12 +81,12 @@ Due to the high intercorrelation in $\bm{h}$, slow convergence and poor mixing c
 To avoid the issues with high intercorrelation in $\bm{h}$, a multi-move sampler was used that draws $\bm{h}$ from $\bm{h}\mid\bm{y},\phi,\sigma^2,\mu$ at once.
 By approximating the marginal distribution of $\ets$ with a $K=7$ component mixture of normals,~\citeauthor{Kim1998} managed to reduce the task to the known framework of conditionally Gaussian state spaces\footnote{For an introduction see~\citet{Kitagawa1996}.}.
 Since the marginal of $\ets$ does not include any model-dependent values, this mixture of normals can be specified before fitting the model.
-The approximation errors to the original SV model can be corrected for, by a reweighting scheme.
+The approximation errors to the original SV model can be corrected for by a reweighting scheme.
 However, this correction did not change the results significantly due to the good choice of the mixture approximation.
 
 Matching parameters with papers' models can go to an appendix???
 
-\subsection[Sampling algorithm]{Approximate, multi-move sampler}
+\subsection{Approximate model}
 
 Both the single move and the multi-move samplers were generalised to SV with leverage in~\citet{Omori2007}, and a particle filtering\footnote{For an introduction see~\citet{Johannes2009}.} method was also derived.
 In this work, we favor MCMC methods over sequential Monte Carlo (particle filtering) due to the availability of computers with strong processors (wu cloud ???), and, due to its better sampling efficiency, the multi-move sampler was chosen over the single move sampler for fitting the model.
@@ -231,10 +231,8 @@ h_t \\
 y_T^\ast &= h_T+\xi_T.
 \end{alignedat}
 \end{equation}
-Note that $\tilde{\mu}_t$ is constant through $t$.
-Since $(\xi_t,\nu_t,0)$ is a (degenerate) normal white-noise series, setting $\mu\equiv\tilde{\mu}_t$, and assuming a normal prior for $h_1\mid(\mu,\sigma,\phi)$ and $\mu$, model~\eqref{form:gauss_model} is a linear Gaussian state space model with hidden state $(h_t,\tilde{\mu}_t)$.
-We need this ``trick'' with the inclusion of $\mu$ in the hidden state in order to match the general form of models that can be fitted with the algorithm in~\citet{de1995simulation}.
-We will adapt the priors of the latent state used by~\citeauthor{Omori2007}, namely, for arbitrary constant $\sigma_0$,
+Since $(\xi_t,\nu_t,0)$ is a (degenerate) normal white-noise series, setting $\mu\equiv\tilde{\mu}_t$ and assuming a normal prior for $\mu$ and $h_1\mid(\mu,\sigma,\phi)$, model~\eqref{form:gauss_model} is a linear Gaussian state space (GSS) with hidden state $(h_t,\tilde{\mu}_t)$.
+We copy the priors of the initial latent state used by~\citeauthor{Omori2007}, for arbitrary constant $\sigma_0$,
 \begin{equation*}
 \begin{pmatrix}
 h_1 \\
@@ -251,17 +249,24 @@ h_1 \\
 \end{pmatrix}
 \right).
 \end{equation*}
+Note that in~\eqref{form:gauss_model} $\tilde{\mu}_t$ is constant through $t$. \citeauthor{Omori2007} needed this ``trick'' with the inclusion of $\mu$ in the hidden state in order to match the general form of models that can be fitted via the method in~\citet{de1995simulation}.
+
+\subsection{Estimation with leverage}
+
+\subsubsection{Markov Chain Monte Carlo algorithms}
+
+bblablabllallaskdjf
 
 \subsubsection{Steps overview}
 
-After initialising all the variables and parameters, there are three main steps when estimating a conditional linear Gaussian state space such as model~\ref{form:gauss_model}:
+After initialising all the latent variables and parameters, there are three main steps when doing a Bayesian estimation of a conditional linear GSS.
 \begin{enumerate}
-	\item Draw $\bm{s}\mid\bm{y}^\ast,\bm{d},\bm{h},\mu,\bm\theta$,
-	\item Draw $(\bm\theta,\bm h,\mu)\mid\bm y,\bm d,\bm s$,
+	\item Draw $\bm{s}\mid\bm{y}^\ast,\bm{d},\bm{h},\mu,\bm\theta$\label{enum:draw-s},
+	\item Draw $(\bm\theta,\bm h,\mu)\mid\bm y^\ast,\bm d,\bm s$\label{enum:draw-other},
 	\begin{enumerate}
-		\item Draw $\bm\theta\mid\bm{y}^\ast,\bm{d}$,
-		\item Draw $(\bm{h},\mu)\mid\bm{y}^\ast,\bm{d},\bm\theta$.
+		\item Draw $\bm\theta\mid\bm{y}^\ast,\bm{d}$\label{enum:draw-theta},
+		\item Draw $(\bm{h},\mu)\mid\bm{y}^\ast,\bm{d},\bm\theta$\label{enum:draw-latent}.
 	\end{enumerate}
 \end{enumerate}
+Steps~\ref{enum:draw-s} and~\ref{enum:draw-other} are interchangeable in the algorithm but~\ref{enum:draw-theta} and~\ref{enum:draw-latent} are not because the former's by-products are used in the latter.
 
-Steps in detail in subsubsections
