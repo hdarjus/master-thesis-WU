@@ -70,9 +70,9 @@ This estimator is consistent and asymptotically normally distributed, but it has
 \subsubsection{Bayesian approach}
 
 The lack of a closed form likelihood function also means that there are no closed form posteriors for the model.
-This suggests the usage of Markov chain Monte Carlo algorithms (MCMC), which, with the help of Bayes' theorem, make it possible to draw samples from the posterior distribution of the latent variables and the parameters.
+This suggests the usage of Markov chain Monte Carlo algorithms (MCMC), which, with the help of Markov chains and Bayes' theorem, make it possible to draw samples from the posterior distribution of the latent variables and the parameters.
 With enough such samples we get a picture of these distributions.
-For an introduction, see, e.g.,~\citet{Geyer2011}.
+For an introduction, see, e.g.,~\citet{Geyer2011} or Section~\ref{sec:estimlev}.
 
 In~\citet{Kim1998}, two different Bayesian ideas were compared for SV without leverage based on how the latent variables are sampled.
 A single move (one-at-a-time volatility update) sampler was introduced first that draws $h_t$ from $h_t\mid\bm{h}_{-t},\bm{y},\phi,\sigma^2,\mu$ one by one, where $\bm{h}_{-t}$ is $\bm{h}$ excluding $h_t$.
@@ -158,7 +158,7 @@ f_{\ets,\eta_t\mid d_t,\rho,\sigma} &\approx f_{\xi_t,\nu_t\mid d_t,\rho,\sigma}
 
 Plots about how good this approximation is ???
 
-\subsubsection{Correcting for misspecification}
+\subsubsection{Correcting for misspecification}\label{sec:reweight}
 
 By using an approximate distribution for the true $f_{\ets,\eta_t\mid d_t,\rho,\sigma}$, we misspecified the model, and our draws for $\bm{h}$, $\bm{\theta}$ and $\mu$ are from an approximate posterior density as well.
 One can correct this and produce draws from the true posterior $f_{\bm{h},\bm{\theta},\mu\mid\bm{y}}$ by calculating weights $w_k\ (k=1,\dots,T)$ for all the draws, and resample the sampled numbers according to the weights.
@@ -251,22 +251,54 @@ h_1 \\
 \end{equation*}
 Note that in~\eqref{form:gauss_model} $\tilde{\mu}_t$ is constant through $t$. \citeauthor{Omori2007} needed this ``trick'' with the inclusion of $\mu$ in the hidden state in order to match the general form of models that can be fitted via the method in~\citet{de1995simulation}.
 
-\subsection{Estimation with leverage}
+\subsection{Estimation with leverage}\label{sec:estimlev}
 
-\subsubsection{Markov Chain Monte Carlo algorithms}
+\subsubsection[MCMC algorithms]{Markov Chain Monte Carlo algorithms}
 
-bblablabllallaskdjf
+The term Monte Carlo is used for the simulation of random processes, while the term Markov chain denotes sequences of random variables $X_1,X_2,\dots$ for which, for each $n\in\mathbb{N}$, the conditional distribution of $X_{n+1}$ given $X_1,\dots,X_n$ only depends on $X_n$ (it is ``memoryless'').
+This way, the value of $X_n$ can be thought of as the state of the chain at time $n$, and then the distribution $f_{X_{n+1}\mid X_n}(v\mid u)$ is the probability of transition from state $u$ to state $v$ at time $n$.
+Under sufficient conditions, the states of a Markov chain converge in distribution to $\pi$, called the equilibrium distribution, from every initial state having positive density~\citep{grinstead2012introduction}.
+
+In practice, we cannot prove the conditions for the existence of $\pi$.
+Instead we only have the output of the algorithm, a sequence of realisations, from which we can try to imply that we have a converged chain using, e.g., visualisations and autocorrelation functions.
+\citet{Geyer2011} mentions the issues that pop up here and argues about some solution ideas.
+
+\comment{
+	These transition probabilities are called stationary if they don't depend on $n$.
+	
+	For the majority of the Markov chain Monte Carlo (MCMC) algorithms stationary transition probability distributions are needed.
+	These are easier to handle, e.g. the joint distribution of such a Markov chain is characterised by the initial distribution of $X_1$ and on the general transition distribution from $X_n$ to $X_{n+1}$.
+	
+	The sequence $X_1,X_2,\dots$ itself is called stationary if for each $k\in\mathbb{N}$ and $n\in\mathbb{N}$ the joint distribution of the tuple $(X_n,\dots,X_{n+k})$ is independent of $n$.}
 
 \subsubsection{Steps overview}
 
 After initialising all the latent variables and parameters, there are three main steps when doing a Bayesian estimation of a conditional linear GSS.
-\begin{enumerate}
+\begin{enumerate}[start=0]
+	\item Initialise $\bm h,\bm s,\bm{\theta},\mu$,
 	\item Draw $\bm{s}\mid\bm{y}^\ast,\bm{d},\bm{h},\mu,\bm\theta$\label{enum:draw-s},
-	\item Draw $(\bm\theta,\bm h,\mu)\mid\bm y^\ast,\bm d,\bm s$\label{enum:draw-other},
+	\item Draw $\bm\theta,\bm h,\mu\mid\bm y^\ast,\bm d,\bm s$\label{enum:draw-other},
 	\begin{enumerate}
-		\item Draw $\bm\theta\mid\bm{y}^\ast,\bm{d}$\label{enum:draw-theta},
-		\item Draw $(\bm{h},\mu)\mid\bm{y}^\ast,\bm{d},\bm\theta$\label{enum:draw-latent}.
+		\item Draw $\bm\theta\mid\bm{y}^\ast,\bm{d},\bm s$\label{enum:draw-theta},
+		\item Draw $\bm{h},\mu\mid\bm{y}^\ast,\bm{d},\bm\theta,\bm s$\label{enum:draw-latent},
 	\end{enumerate}
+	\item Goto Step~\ref{enum:draw-s}.
 \end{enumerate}
-Steps~\ref{enum:draw-s} and~\ref{enum:draw-other} are interchangeable in the algorithm but~\ref{enum:draw-theta} and~\ref{enum:draw-latent} are not because the former's by-products are used in the latter.
+Steps~\ref{enum:draw-s} and~\ref{enum:draw-other} are interchangeable in the algorithm but~\ref{enum:draw-theta} and~\ref{enum:draw-latent} are not because the former's by-products are needed for the latter.
+The steps are detailed below.
 
+If the Markov chain specified by the algorithm above has an equilibrium distribution, then it is an approximate to $\bm h,\bm s,\bm{\theta},\mu\mid\bm y$, the posterior distribution of the parameters and latent variables, and it is the true one after the reweighting scheme (Section~\ref{sec:reweight}).
+So by repeating the steps sufficiently many times, after ``reaching convergence'' we obtain draws from the posterior.
+With such a sample we can estimate the posterior mean or any other point estimate, calculate credible intervals or transforms of the distribution.
+
+\subsubsection{Drawing the mixture states}
+
+a
+
+\subsubsection{Drawing $\rho,\sigma,\phi$}
+
+a
+
+\subsubsection{Drawing $\mu$ and the log variance}
+
+a
