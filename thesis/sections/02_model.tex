@@ -4,7 +4,7 @@
 \section{Model}
 
 The Stochastic Volatility (SV) model was introduced in the seminal work of~\citet{taylor1982financial}.
-By choosing SV, one aims at capturing time varying and clustered volatility using an AR(1) process.
+By choosing SV, one aims at capturing time varying and seasonal volatility using an AR(1) process.
 The model used in this thesis is the Stochastic Volatility with Leverage, which, additional to the AR(1) process, also models the leverage effect by letting the stock return and the increment of the log variance have a constant correlation.
 
 \subsection{Formulation}
@@ -12,13 +12,14 @@ The model used in this thesis is the Stochastic Volatility with Leverage, which,
 The SV model with leverage is, in its canonical form, as formulated in~\citet{Omori2007},
 \begin{equation}
 \begin{alignedat}{2}\label{form:orig_model}
-y_t & = \varepsilon_t\exp\left(h_t/2\right), && \quad t=1,\dots,n, \\
-h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, && \quad t=1,\dots,n-1, \\
+y_t & = \varepsilon_t\exp\left(h_t/2\right), && \quad t=1,\dots,T, \\
+h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, && \quad t=1,\dots,T-1, \\
 \begin{pmatrix}
 \varepsilon_t \\
 \eta_t
 \end{pmatrix}
-\bigg\vert\left(\rho,\sigma\right) & \sim\text{ i.i.d. }\mathcal{N}_2\left(\bm{0},\bm{\Sigma}\right), \\
+\bigg\vert\left(\rho,\sigma\right) & \sim\text{ i.i.d. }\mathcal{N}_2\left(\bm{0},\bm{\Sigma}\right), && \quad t=1,\dots,T-1, \\
+\varepsilon_T &\sim\mathcal{N}(0,1), \\
 \bm{\Sigma} & =
 \begin{pmatrix}
 1 & \rho\sigma \\
@@ -26,7 +27,7 @@ h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, && \quad t=1,\dots,n-1, \\
 \end{pmatrix},
 \end{alignedat}
 \end{equation}
-where $n$ is the number of time points, the only observed variable is $y_t$, the demeaned log returns, and it is conditionally normally distributed, given $h_t$.
+where $T$ is the number of time points, the only observed variable is $y_t$, the demeaned log returns, and it is conditionally normally distributed, given $h_t$.
 The log variance, $\bm{h}$, is the latent vector, and it constitutes an AR(1) process with mean $\mu$, persistence $\phi$ and variance $\sigma^2$.
 Leverage is the fourth parameter, $\rho$, which is the correlation between $\varepsilon_t$ and $\eta_t$, i.e. the increment of the stock price and the increment of the log variance.
 
@@ -49,7 +50,7 @@ where the error term of the first equation has a $\log(\chi_1^2)$ distribution. 
 
 The SV model with leverage was formulated differently in~\citet{Jacquier2004}, where $\varepsilon_t$ and $\eta_{t-1}$ are correlated.
 A comparison provided in~\citet{yu2005leverage} revealed that model~\ref{form:orig_model} is more attractive as it is an Euler approximation to the log-normal Ornstein--Uhlenbeck process, hence, the method that fits~\ref{form:orig_model} also fits the corresponding continuous time process with discretely sampled data.
-Moreover, in the alternative specification $y_t$ is not a martingale difference sequence, and $\rho$ has two roles: leverage and the skewness of $y_t\mid y_{t-1},\dots,y_1$, which makes it more difficult to interpret its value.
+Moreover, in the alternative specification $y_t$ is not a martingale difference sequence, and $\rho$ has two roles: leverage and the skewness of $y_t\mid y_1,\dots,y_{t-1}$, which makes it more difficult to interpret its value.
 Finally, an empirical comparison showed the model by~\citeauthor{Jacquier2004} to be inferior to~\ref{form:orig_model}.
 
 \subsection{Estimation without leverage}
@@ -84,7 +85,7 @@ Since the marginal of $\ets$ does not include any model-dependent values, this m
 The approximation errors to the original SV model can be corrected for by a reweighting scheme.
 However, this correction did not change the results significantly due to the good choice of the mixture approximation.
 
-Matching parameters with papers' models can go to an appendix???
+\comment{Matching parameters with papers' models can go to an appendix???}
 
 \subsection{Approximate model}
 
@@ -95,19 +96,19 @@ In this work, we favor MCMC methods over sequential Monte Carlo (particle filter
 
 Due to the correlation between $\varepsilon_t$ and $\eta_t$, approximating $\ets$ affects $\eta_t$ as well.
 Thus,~\citeauthor{Omori2007} used a mixture of bivariate normals as an approximation to the conditional distribution of the pair $(\ets, \eta_t)$.
-Let $(\xi_t,\nu_t\mid d_t,\rho,\sigma)$ denote the approximate random variable to $(\ets,\eta_t\mid d_t,\rho,\sigma)$, and let $f_X$ denote the density of the random variable $X$.
+Let $(\xi_t,\nu_t\mid d_t,\rho,\sigma)$ denote the approximate random variable to $(\ets,\eta_t\mid d_t,\rho,\sigma)$, and let $\pi(X)$ denote the density of the random variable $X$ and $\pi(X=x)$ denote its value at $x$.
 
 In order to derive the approximation, we first decompose the bivariate conditional density and then approximate the parts separately,
 \begin{align}
-f_{\ets,\eta_t\mid d_t,\rho,\sigma} &= f_{\ets\mid d_t,\rho,\sigma}\cdot f_{\eta_t\mid\ets,d_t,\rho,\sigma},\nonumber \\
-&= f_{\ets}\cdot f_{\eta_t\mid\ets,d_t,\rho,\sigma}\label{eq:decomp},
+\pi(\ets,\eta_t\mid d_t,\rho,\sigma) &= \pi(\ets\mid d_t,\rho,\sigma)\cdot \pi(\eta_t\mid\ets,d_t,\rho,\sigma),\nonumber \\
+&= \pi(\ets)\cdot \pi(\eta_t\mid\ets,d_t,\rho,\sigma)\label{eq:decomp},
 \end{align}
 because the marginal of $\ets$ is independent of $d_t$, $\rho$, and $\sigma$.
-\citeauthor{Omori2007} now used an improved normal mixture approximation to the marginal $f(\ets)$ with $K=10$,
+\citeauthor{Omori2007} now used an improved normal mixture approximation to the marginal $\pi(\ets)$ with $K=10$,
 \begin{equation}\label{eq:ets}
-f_{\xi_t}\triangleq\sum_{j=1}^{10}p_jf_{\mathcal{N}\left(m_j,v_j^2\right)},
+\pi(\xi_t)\triangleq\sum_{j=1}^{10}p_j\pi\left(\mathcal{N}\left(m_j,v_j^2\right)\right),
 \end{equation}
-where $\mathcal{N}\left(m_j,v_j^2\right)$ denotes a normally distributed random variable with mean $m_j$ and variance $v_j^2$.
+where $\pi\left(\mathcal{N}\left(m_j,v_j^2\right)\right)$ denotes the normal density with mean $m_j$ and variance $v_j^2$.
 The constants $m_j$, $p_j$ and $v_j$ are specified in Table~\ref{tab:constants}.
 
 The conditional distribution of $\eta_t$ is
@@ -151,17 +152,17 @@ w.r.t. $a$ and $b$, separately for each $j$, and they are listed in Table~\ref{t
 
 By combining~\eqref{eq:decomp},~\eqref{eq:ets},~\eqref{eq:eta} and~\eqref{eq:etslinear}, we get the final approximation
 \begin{align*}
-f_{\ets,\eta_t\mid d_t,\rho,\sigma} &\approx f_{\xi_t,\nu_t\mid d_t,\rho,\sigma}, \\
-&= f_{\xi_t}\cdot f_{\nu_t\mid\xi_t,d_t,\rho,\sigma}, \\
-&= \sum_{j=1}^{10}p_jf_{\mathcal{N}\left(m_j,v_j^2\right)}\cdot f_{\mathcal{N}\left(d_t\rho\sigma\exp(m_j/2)(a_j+b_j(\xi_t-m_j)),\sigma^2\left(1-\rho^2\right)\right)}.
+\pi(\ets,\eta_t\mid d_t,\rho,\sigma) &\approx \pi(\xi_t,\nu_t\mid d_t,\rho,\sigma), \\
+&= \pi(\xi_t)\cdot \pi(\nu_t\mid\xi_t,d_t,\rho,\sigma), \\
+&= \sum_{j=1}^{10}p_j\pi(\mathcal{N}\left(m_j,v_j^2\right))\cdot \\
+&\quad\cdot\pi\left(\mathcal{N}\left(d_t\rho\sigma\exp(m_j/2)(a_j+b_j(\xi_t-m_j)),\sigma^2\left(1-\rho^2\right)\right)\right).
 \end{align*}
-
-Plots about how good this approximation is ???
 
 \subsubsection{Correcting for misspecification}\label{sec:reweight}
 
-By using an approximate distribution for the true $f_{\ets,\eta_t\mid d_t,\rho,\sigma}$, we misspecified the model, and our draws for $\bm{h}$, $\bm{\theta}$ and $\mu$ are from an approximate posterior density as well.
-One can correct this and produce draws from the true posterior $f_{\bm{h},\bm{\theta},\mu\mid\bm{y}}$ by calculating weights $w_k\ (k=1,\dots,T)$ for all the draws, and resample the sampled numbers according to the weights.
+Let $\theta$ denote $(\sigma,\rho,\phi)$.
+By using an approximate distribution for the true $\pi(\ets,\eta_t\mid d_t,\rho,\sigma)$, we misspecified the model, and our draws for $\bm{h}$, $\theta$ and $\mu$ are from an approximate posterior density as well.
+One can correct this and produce draws from the true posterior $\pi(\bm{h},\theta,\mu\mid\bm{y})$ by calculating weights $w_k$, for all the draws $k=1,\dots,N$, and resample the sampled numbers according to the weights.
 After obtaining the error terms
 \begin{align*}
 \xi_t^k &= y_t^\ast-h_t^k, \\
@@ -169,7 +170,7 @@ After obtaining the error terms
 \end{align*}
 Then, we compute the non-normalised weights
 \begin{equation*}
-w_k^\ast=\frac{f_{\ets,\eta_t\mid d_t,\mu,\bm\theta}\left(\xi_t^k,\nu_t^k\mid d_t,\mu^k,\bm\theta^k\right)}{f_{\xi_t,\nu_t\mid d_t,\mu,\bm\theta}\left(\xi_t^k,\nu_t^k\mid d_t,\mu^k,\bm\theta^k\right)},
+w_k^\ast=\frac{\pi\left(\ets=\xi_t^k,\eta_t=\nu_t^k\mid d_t,\mu=\mu^k,\theta=\theta^k\right)}{\pi\left(\xi_t=\xi_t^k,\nu_t=\nu_t^k\mid d_t,\mu=\mu^k,\theta=\theta^k\right)},
 \end{equation*}
 Finally, we normalise the weights
 \begin{equation*}
@@ -177,14 +178,15 @@ w_k=\frac{w_k^\ast}{\sum_{l=1}^{T}w_l^\ast}
 \end{equation*}
 to get the probabilities that we use for resampling the existing draws.
 \citeauthor{Omori2007} found that the weights have quite small variance which makes the effect of this correction procedure modest.
+That is in line with the demonstrated high precision of the approximate bivariate distribution.
 
 \subsubsection[State space form]{Conditional Gaussian state space form}
 
 Due to the normal mixture approximation, a new variable $\bm s=(s_1,\dots,s_T)$ has been introduced to the model, the vector of mixture components, one component for each time point. Given $s_t=j$, we end up with a linear model with normal errors,
 \begin{equation}
 \begin{alignedat}{2}\label{form:appr_model}
-\yts & = h_t+\xi_t, \quad t=1,\dots,n, \\
-h_{t+1} & = \mu+\phi(h_t-\mu)+\nu_t, \quad t=1,\dots,n-1, \\
+\yts & = h_t+\xi_t, && \quad t=1,\dots,T, \\
+h_{t+1} & = \mu+\phi(h_t-\mu)+\nu_t, && \quad t=1,\dots,T-1, \\
 \begin{pmatrix}
 \xi_t \\
 \nu_t
@@ -200,17 +202,18 @@ b_jv_j\gamma_t^j && \sigma\sqrt{1-\rho^2}
 \begin{pmatrix}
 z_t^1 \\
 z_t^2
-\end{pmatrix}, \\
+\end{pmatrix}, && \quad t=1,\dots,T-1, \\
+\xi_T &\overset{d}{=} m_j+v_jz_t^1, \\
 \begin{pmatrix}
 z_t^1 \\
 z_t^2
 \end{pmatrix}
-&\sim\text{ i.i.d. }\mathcal{N}_2\left(\bm{0},\bm{I_2}\right),
+&\sim\text{ i.i.d. }\mathcal{N}_2\left(\bm{0},\bm{I_2}\right), && \quad t=1,\dots,T,
 \end{alignedat}
 \end{equation}
 where $\gamma_t^j\triangleq d_t\rho\sigma\exp(m_j/2)$ and ``$\overset{d}{=}$'' means equivalence in distribution. Note that $(\xi_t,\nu_t)$ depends on $d_t,\rho,\sigma$ and $s_t$.
 
-In order to reduce the estimation of model~\eqref{form:appr_model} to the estimation of a well-known framework, we first reformulate~\eqref{form:appr_model} equivalently as
+In order to reduce the estimation of model~\eqref{form:appr_model} to the estimation of a well-known framework, we reformulate the first two equations of~\eqref{form:appr_model} equivalently as
 \begin{equation}
 \begin{alignedat}{2}\label{form:gauss_model}
 \begin{pmatrix}
@@ -256,7 +259,7 @@ Note that in~\eqref{form:gauss_model} $\tilde{\mu}_t$ is constant through $t$. \
 \subsubsection[MCMC algorithms]{Markov Chain Monte Carlo algorithms}
 
 The term Monte Carlo is used for the simulation of random processes, while the term Markov chain denotes sequences of random variables $X_1,X_2,\dots$ for which, for each $n\in\mathbb{N}$, the conditional distribution of $X_{n+1}$ given $X_1,\dots,X_n$ only depends on $X_n$ (it is ``memoryless'').
-This way, the value of $X_n$ can be thought of as the state of the chain at time $n$, and then the distribution $f_{X_{n+1}\mid X_n}(v\mid u)$ is the probability of transition from state $u$ to state $v$ at time $n$.
+This way, the value of $X_n$ can be thought of as the state of the chain at time $n$, and then $f_{X_{n+1}\mid X_n}(v\mid u)$ is the probability or density of transition from state $u$ to state $v$ at time $n$.
 Under sufficient conditions, the states of a Markov chain converge in distribution to $\pi$, called the equilibrium distribution, from every initial state having positive density~\citep{grinstead2012introduction}.
 
 In practice, we cannot prove the conditions for the existence of $\pi$.
@@ -275,30 +278,109 @@ Instead we only have the output of the algorithm, a sequence of realisations, fr
 
 After initialising all the latent variables and parameters, there are three main steps when doing a Bayesian estimation of a conditional linear GSS.
 \begin{enumerate}[start=0]
-	\item Initialise $\bm h,\bm s,\bm{\theta},\mu$,
-	\item Draw $\bm{s}\mid\bm{y}^\ast,\bm{d},\bm{h},\mu,\bm\theta$\label{enum:draw-s},
-	\item Draw $\bm\theta,\bm h,\mu\mid\bm y^\ast,\bm d,\bm s$\label{enum:draw-other},
+	\item Initialise $\bm h,\bm s,\theta,\mu$,
+	\item Draw $\bm{s}\mid\bm{y}^\ast,\bm{d},\bm{h},\mu,\theta$\label{enum:draw-s},
+	\item Draw $\theta,\bm h,\mu\mid\bm y^\ast,\bm d,\bm s$\label{enum:draw-other},
 	\begin{enumerate}
-		\item Draw $\bm\theta\mid\bm{y}^\ast,\bm{d},\bm s$\label{enum:draw-theta},
-		\item Draw $\bm{h},\mu\mid\bm{y}^\ast,\bm{d},\bm\theta,\bm s$\label{enum:draw-latent},
+		\item Draw $\theta\mid\bm{y}^\ast,\bm{d},\bm s$\label{enum:draw-theta},
+		\item Draw $\bm{h},\mu\mid\bm{y}^\ast,\bm{d},\theta,\bm s$\label{enum:draw-latent},
 	\end{enumerate}
 	\item Goto Step~\ref{enum:draw-s}.
 \end{enumerate}
 Steps~\ref{enum:draw-s} and~\ref{enum:draw-other} are interchangeable in the algorithm but~\ref{enum:draw-theta} and~\ref{enum:draw-latent} are not because the former's by-products are needed for the latter.
-The steps are detailed below.
+The steps are detailed below based on~\citet{Omori2007}.
 
-If the Markov chain specified by the algorithm above has an equilibrium distribution, then it is an approximate to $\bm h,\bm s,\bm{\theta},\mu\mid\bm y$, the posterior distribution of the parameters and latent variables, and it is the true one after the reweighting scheme (Section~\ref{sec:reweight}).
+If the Markov chain specified by the algorithm above has an equilibrium distribution, then it is an approximate to $\bm h,\bm s,\theta,\mu\mid\bm y$, the posterior distribution of the parameters and latent variables, and it is the true one after the reweighting scheme (Section~\ref{sec:reweight}).
 So by repeating the steps sufficiently many times, after ``reaching convergence'' we obtain draws from the posterior.
 With such a sample we can estimate the posterior mean or any other point estimate, calculate credible intervals or transforms of the distribution.
 
 \subsubsection{Drawing the mixture states}
 
-a
+This is the easiest part because we can derive the posterior probabilities $\pi(s_t=j\mid\bm{y},\bm{h},\mu,\sigma,\rho,\phi)$, $j=1,\dots,K$, directly.
+We define
+\begin{align*}
+\hat\xi_t &\triangleq y_t^\ast-h_t, \\
+\hat{\nu}_t &\triangleq h_{t+1}-\mu-\phi(h_t-\mu), \\
+\gamma_t^j &\triangleq d_t\rho\sigma\exp(m_j/2),
+\end{align*}
+then, based on~\citet{Omori2007} with $K=10$, for $t=1,\dots,T-1$ and $j=1,\dots,10$,
+\begin{equation}
+\begin{aligned}[1]
+\pi\left(s_t=j\mid\bm{y},\bm{h},\mu,\theta\right) &\propto P\left(s_t=j\right)\cdot\pi\left(\xi_t=\hat\xi_t\mid s_t=j\right)\cdot \\
+&\quad\cdot\pi\left(\nu_t=\hat\nu_t\mid\xi_t=\hat\xi_t,s_t=j,h_{t+1},h_t,\mu,\theta\right), \\
+\pi\left(s_T=j\mid\bm{y},\bm{h},\mu,\theta\right)
+&\propto P\left(s_T=j\right)\cdot\pi\left(\xi_T=\hat\xi_T\mid s_T=j\right)\cdot 1,
+\end{aligned}
+\end{equation}
+where
+\begin{align*}
+P\left(s_t=j\right) &= p_j, \\
+\pi\left(\xi_t=\hat\xi_t\mid s_t=j\right) &\propto \frac{1}{v_j}\exp\left(-\frac{\left(\hat\xi_t-m_j\right)^2}{2v_j^2}\right),
+\end{align*}
+and
+\begin{multline*}
+\pi\left(\nu_t=\hat\nu_t\mid\xi_t=\hat\xi_t,s_t=j,h_{t+1},h_t,\mu,\theta\right) \propto \\
+\propto \exp\left(-\frac{\left(\hat{\nu}_t-\left(\gamma_t^j\left[a_j+b_j\left(\hat\xi_t-m_j\right)\right]\right)\right)^2}{2\sigma^2\left(1-\rho^2\right)}\right).
+\end{multline*}
+This way we get values that are just proportional to the posterior probabilities, hence we have to normalise these values so that they sum to 1.
+We can use the inverse sampling method to draw $\bm s\mid\bm{y},\bm{h},\mu,\sigma,\rho,\phi$~\citep{grinstead2012introduction}.
 
 \subsubsection{Drawing $\rho,\sigma,\phi$}
 
-a
+The remaining two steps are more involved and based on~\citet{de1995simulation}.
+They are detailed and derived for SV with leverage in~\citet{Nakajima2009}, where SV with leverage is extended and features jumps and t distributed residuals.
+
+In this step, the Metropolis-Hastings (MH) algorithm is used to obtain a draw from $\theta\mid\bm{y}^\ast,\bm{d},\bm s$.
+Three things are needed for MH,
+\begin{itemize}
+	\item Calculate the true density $\pi(\theta\mid\bm{y}^\ast,\bm{d},\bm s)$ up to a constant factor,
+	\item A proposal density $g(\theta\mid\bm{y}^\ast,\bm{d},\bm s)$ whose support is a superset of the true support,
+	\item A proposed new $\theta_\ast$ from $g(\theta\mid\bm{y}^\ast,\bm{d},\bm s)$.
+\end{itemize}
+It is important that the evaluation of and sampling from the proposal density is efficient.
+Bayes' theorem helps with the first point by decomposing the posterior into the likelihood and the prior: $\pi(\theta\mid\bm{y}^\ast,\bm{d},\bm s)\propto\pi(\bm{y}^\ast\mid\theta,\bm{d},\bm s)\pi(\theta)$.
+The likelihood can be computed using the Kalman filter, the prior is usually chosen to be from a well-known family.
+
+Given everything above, a MH step in the $n$th loop
+\begin{enumerate}
+	\item Produces a candidate $\theta_\ast$ from $g(\theta\mid\bm{y}^\ast,\bm{d},\bm s)$.
+	\item The new sample will be either the current value $\theta_n$ or the candidate $\theta_\ast$. The so-called acceptance ratio drives the decision:
+	\begin{equation*}
+	\text{AR}=\frac{\pi(\bm{y}^\ast\mid\theta_\ast,\bm{d},\bm s)\pi(\theta_\ast)}{\pi(\bm{y}^\ast\mid\theta_n,\bm{d},\bm s)\pi(\theta_n)}\frac{g(\theta_n\mid\bm{y}^\ast,\bm{d},\bm s)}{g(\theta_\ast\mid\bm{y}^\ast,\bm{d},\bm s)}
+	\end{equation*}
+	\item Finally, $\theta_\ast$ is accepted with probability $\min\left\{\text{AR},1\right\}$, and $\theta_{n+1}=\theta_\ast$.
+	Otherwise $\theta_{n+1}=\theta_n$ is the new state again.
+\end{enumerate}
+
+\citeauthor{Nakajima2009} chose the proposal to be $\mathcal{N}(c, C)$ truncated to the region $R=\left\{(\sigma,\rho,\phi)\mid\sigma>0,-1<\rho<1,-1<\phi<1\right\}$.
+The mean vector $c$ and the covariance matrix $C$ are calculated in each loop in a way that the proposal's log density is the second order Taylor expansion of the true log density around the true log density's mode.\footnote{
+	Even though we can only evaluate the true posterior density up to a (positive) constant factor, this works here because the mode is the same, and we differentiate the log density for the Taylor expansion, i.e. constant multipliers vanish.}
+More precisely,
+\begin{align*}
+c &= \hat{\theta}+Cv, \\
+C^{-1} &= -\frac{\partial^2\log\pi(\theta\mid\bm{y}^\ast,\bm{d},\bm s)}{\partial\theta\partial\theta^\prime}, \\
+v &= \frac{\partial\log\pi(\theta\mid\bm{y}^\ast,\bm{d},\bm s)}{\partial\theta}, \\
+\hat{\theta} &= \text{arg}\max_\theta\pi(\theta\mid\bm{y}^\ast,\bm{d},\bm s).
+\end{align*}
 
 \subsubsection{Drawing $\mu$ and the log variance}
 
-a
+Both $\mu$ and $\bm h$ are sampled using by-products of the Kalman filter used when calculating $\pi(\bm{y}^\ast\mid\theta_{n+1},\bm{d},\bm s)$ for the AR.
+The new value of $\mu$ comes by simply drawing from $\mathcal{N}(q_{T+1},Q_{T+1})$, where $q_{T+1}$ and $Q_{T+1}$ are readily available at this point.
+In order to get the latent vector $\bm h$, we first sample $\bm{\nu}\mid\bm{y}^\ast,\bm{d},\theta,\bm s$ using a Gaussian simulation smoother~\citep{fruhwirth1994data,carter1994gibbs} and then reconstruct $\bm h$ from the formulas in~\citet{de1995simulation}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\comment{
+	\begin{align}
+	\pi(s_t=j\mid\bm{y},\bm{h},\mu,\theta)
+	&= \pi(s_t=j\mid\bm{y^*},\bm{d},\bm{h},\mu,\theta),\nonumber \\
+	&\overset{(1)}{=} \pi(s_t=j\mid y^*_t,d_t,h_{t+1},h_t,\mu,\theta),\nonumber \\
+	&\overset{(2)}{=} \pi(s_t=j\mid \xi_t,d_t,\nu_t,\mu,\theta),\nonumber \\
+	&\propto P(s_t=j)\cdot\pi(\xi_t,\nu_t\mid s_t=j,d_t,\mu,\theta),\nonumber \\
+	&\overset{(3)}{=} P(s_t=j)\cdot\pi(\xi_t=y^*_t-h_t\mid s_t=j)\cdot\nonumber \\
+	&\qquad\cdot\pi(\nu_t=h_{t+1}-\mu-\phi(h_t-\mu)\mid \xi_t,s_t=j,d_t,\mu,\theta),\nonumber \\
+	&\propto p_j\frac{1}{v_j}\exp\left(\frac{(y^*_t-h_t-m_j)^2}{2v_j^2}\right)\cdot \\
+	&\qquad\exp\left(\dots\right)
+	\end{align}
+}

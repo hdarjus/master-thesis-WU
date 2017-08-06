@@ -1,12 +1,21 @@
 \section{Implementation}
 
-Intro blabla
+\citeauthor{Nakajima2009} developed and published a software that was used for their calculations~\citep{nakajima2009code}.
+However, that was written in the proprietary Ox language, which is only freely available with limited features for academic and teaching purposes~\citep{doornik2009object}.
+Apart from investigating the behavior of leverage, this master thesis also aimed at providing a freely available solution.
+This section provides details and tests about this implementation, which will be published under the GNU GPLv3 License~\citep{gplv3}.
+In the meantime, the software is available upon request from the author.
 
 \subsection{Framework}
 
-R, used packages
+The software is written mainly in R~\citep{rlanguage}, and some parts are in C++~\citep{iso2016iec} via the package Rcpp~\citep{rcpp2011} for the sake of efficiency.
+There are two parts to the software: an R package that provides a function that runs the algorithm detailed in Section~\ref{sec:estimlev}, and a set of individual R scripts that apply that function on data, evaluate results and create plots.
+Other packages used for the model are numDeriv~\citep{rnumderiv}, Matrix~\citep{rmatrix}, testthat~\citep{rtestthat}, mvtnorm~\citep{rmvtnorm} and MCMCpack~\citep{rmcmcpack}.
+For data manipulation and visualisation the packages tidyr~\citep{rtidyr}, dplyr~\citep{rdplyr} and ggplot2~\citep{rggplot2} are used.
 
 \subsection{Simulation}
+
+Simulation tests of the model fitting package are shown in this section.
 
 Setup
 
