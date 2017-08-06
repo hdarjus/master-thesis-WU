@@ -21,13 +21,15 @@
 \newcommand{\E}[1]{\mathbb{E}\left\{#1\right\}}
 
 \newcommand\BackgroundPic{%
-\put(0,0){%
-\parbox[b][\paperheight]{\paperwidth}{%
-\vfill
-\centering
-\includegraphics[width=\paperwidth,height=\paperheight,keepaspectratio]{background.pdf}%
-\vfill
-}}}
+	\put(0,0){%
+		\parbox[b][\paperheight]{\paperwidth}{%
+			\vfill
+			\centering
+			\includegraphics[width=\paperwidth,height=\paperheight,keepaspectratio]{background.pdf}%
+			\vfill
+		}
+	}
+}
 \fancyhf{}% Clear all headers/footers
 %\renewcommand{\headrulewidth}{0pt}% No header rule
 %\renewcommand{\footrulewidth}{0pt}% No footer rule
@@ -37,89 +39,89 @@
 %\includeonly{sections/02_model}
 
 \begin{document}
-\includepdf[pages={1}]{scan-of-declaration-of-authorship.pdf}
-\pagebreak
-
-\AddToShipoutPicture*{\BackgroundPic}
-\thispagestyle{fancy}
-
-
-{\vspace{2cm}~}
-{\vspace{2cm}}
-
-%% SELECT BACHELOR OR MASTER THESIS
-{\noindent\large Master Thesis}
-
-
-\vspace{1cm}
-
-%% WRITE THE TITLE OF YOUR WORK
-{\noindent\huge\textbf{The Leverage Effect}}
-
-\bigskip
-
-%% WRITE YOUR NAME, date of birth, Student ID
-{\noindent\LARGE Darjus \textsc{Hosszejni}}
-
-%% WRITE YOUR date of birth, Student ID
-\bigskip
-{\noindent\small Date of Birth: August 27, 1991}\newline
-{\noindent\small Student ID: 1551490}
-
-\bigskip
-{\vspace{2cm}}
-{\noindent\large {\bf Subject Area:} Financial modelling, Bayesian inference}
-
-%% WRITE YOUR Studienkennzahl
-\bigskip
-{\noindent\large {\bf Studienkennzahl:} J0000000000}
-
-\bigskip
-
-
-%% WRITE THE NAME OF YOUR SUPERVISOR
-{\noindent\large {\bf Supervisor:}\\ Mag.rer.soc.oec.~MMag.rer.nat.~Dipl.-Ing.~Dr.techn.\\
-Gregor~\textsc{Kastner}}
-
-\bigskip
-
-%% WRITE THE DATAE OF SUBMISSION
-{\noindent\large {\bf Date of Submission:} September 9, 2017}
-
-\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
-
-{\em\noindent Department of Finance, Accounting and Statistics\\
-Vienna University of Economics and Business\\
-Welthandelsplatz 1\\
-1020 Vienna\\
-Austria
-}
-
-
-\pagestyle{empty}
-\pagebreak
-\tableofcontents
-\pagebreak
-\listoffigures
-\pagebreak
-\listoftables
-\pagebreak
-
-
-\begin{abstract}
-Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus.\dots
-\end{abstract}
-
-\pagebreak
-
-\include{sections/01_introduction}
-\include{sections/02_model}
-\include{sections/03_implementation}
-\include{sections/04_computations}
-\include{sections/05_results}
-
-\nocite{*}
-\bibliographystyle{abbrvnat}
-\bibliography{references}
-
+	\includepdf[pages={1}]{scan-of-declaration-of-authorship.pdf}
+	\pagebreak
+	
+	\AddToShipoutPicture*{\BackgroundPic}
+	\thispagestyle{fancy}
+	
+	
+	{\vspace{2cm}~}
+	{\vspace{2cm}}
+	
+	%% SELECT BACHELOR OR MASTER THESIS
+	{\noindent\large Master Thesis}
+	
+	
+	\vspace{1cm}
+	
+	%% WRITE THE TITLE OF YOUR WORK
+	{\noindent\huge\textbf{The Leverage Effect}}
+	
+	\bigskip
+	
+	%% WRITE YOUR NAME, date of birth, Student ID
+	{\noindent\LARGE Darjus \textsc{Hosszejni}}
+	
+	%% WRITE YOUR date of birth, Student ID
+	\bigskip
+	{\noindent\small Date of Birth: August 27, 1991}\newline
+	{\noindent\small Student ID: 1551490}
+	
+	\bigskip
+	{\vspace{2cm}}
+	{\noindent\large {\bf Subject Area:} Financial modelling, Bayesian inference}
+	
+	%% WRITE YOUR Studienkennzahl
+	\bigskip
+	{\noindent\large {\bf Studienkennzahl:} J0000000000}
+	
+	\bigskip
+	
+	
+	%% WRITE THE NAME OF YOUR SUPERVISOR
+	{\noindent\large {\bf Supervisor:}\\ Mag.rer.soc.oec.~MMag.rer.nat.~Dipl.-Ing.~Dr.techn.\\
+		Gregor~\textsc{Kastner}}
+	
+	\bigskip
+	
+	%% WRITE THE DATAE OF SUBMISSION
+	{\noindent\large {\bf Date of Submission:} September 9, 2017}
+	
+	\bigskip\bigskip\bigskip\bigskip\bigskip\bigskip
+	
+	{\em\noindent Department of Finance, Accounting and Statistics\\
+		Vienna University of Economics and Business\\
+		Welthandelsplatz 1\\
+		1020 Vienna\\
+		Austria
+	}
+	
+	
+	\pagestyle{empty}
+	\pagebreak
+	\tableofcontents
+	\pagebreak
+	\listoffigures
+	\pagebreak
+	\listoftables
+	\pagebreak
+	
+	
+	\begin{abstract}
+		Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus.\dots
+	\end{abstract}
+	
+	\pagebreak
+	
+	\include{sections/01_introduction}
+	\include{sections/02_model}
+	\include{sections/03_implementation}
+	\include{sections/04_computations}
+	\include{sections/05_results}
+	
+	\nocite{*}
+	\bibliographystyle{abbrvnat}
+	\bibliography{references}
+	
 \end{document}
