@@ -5,12 +5,23 @@ For example, it is crucial in capital asset pricing~\citep{skiadas2009asset}, po
 \citeauthor{Christie1982} wrote in 1982 that even though volatility was pivotal in these topics, little work was being done for understanding its properties.
 
 This has changed since 1982.
-That year~\citet{Engle1982} introduced the Autoregressive Conditional Heteroskestacity (ARCH) model that models non-constant variance conditional on the past.
-The ARCH model was later generalised to model volatility more flexibly~\citep{Bollerslev1986}.
-Also in 1982, the Stochastic Volatility model was presented in~\citet{Taylor1982}, which models variance as a random process also unconditionally.
+That year~\citet{Engle1982} introduced the Autoregressive Conditional Heteroskestacity (ARCH) model that assumes non-constant variance conditional on past errors.
+The ARCH model was later extended in several different ways\footnote{For a more extensive overview, see~\citet{bollerslev1994arch}.}: generalised ARCH (GARCH) by~\citet{Bollerslev1986} models volatility as an Autoregressive Moving Average process~\citep{box1994time}, integrated GARCH by~\citet{engle1986modelling} for non-stationary volatility processes, continuous GARCH by~\citet{kluppelberg2004continuous}, to mention some of the well-known ones.
 
-aaa
+\citet{Nelson1991} introduced the first variant including asymmetric volatility, the exponential GARCH.
+It models the logarithm of the variance by a suitable function of past shocks.
+Since then, quite a few versions have been developed targeting asymmetric volatility~\citep{engle1993measuring,glosten1993relation,zakoian1994threshold,sentana1995quadratic}, and Family GARCH by~\citet{hentschel1995all} is an omnibus nesting a variety of them.
 
+
+Still in 1982, the Stochastic Volatility model was presented in~\citet{Taylor1982}, which models variance as a random process also unconditionally.
+
+???
+
+After the leverage effect was first described in~\citet{black1976studies}, the first model-based statistical tests about it were probably done in~\citet{Christie1982}, where the price $S$ is modelled as a diffusion process, and the instantaneous volatility contains the term $S^\theta$.
+So a negative $\theta$ means that if $S$ is decreasing then the volatility is increasing.
+Evidence was found for the leverage effect on their dataset of 379 firms, and also a strong relationship between the leverage effect and the leverage ratio was found.
+
+\comment{
 It was first described by~\citet{black1976studies}, who proposed two possible explanations.
 The first one, and that is probably where the name comes from, was the connection to firms' leverage ratio, i.e. the market equity to debt ratio.
 This theory is underlined by the fact that the existence of the leverage effect can be proved in basic structural models of corporate finance, e.g.~\citeauthor{Christie1982} in the Modigliani--Miller world and some of its generalisations.
@@ -18,11 +29,11 @@ This theory is underlined by the fact that the existence of the leverage effect 
 The effect has been shown using both realised volatility and implied volatility of various models~\citep{Bouchaud2001,Harvey1996,Christie1982,french1987expected}.
 
 Input of Heston model
+}
 
-\subsubsection{Example from Modiglinani--Miller}
-
-The presence of the phenomenon can also be deduced in widely used structural models of corporate finance, e.g. generalisations of Modigliani--Miller~\citep{Christie1982}.
-An illustrating example:  
+\begin{description}
+	\item[Example from Modiglinani--Miller] lkjasdlfkjadflkj
+\end{description}
 
 The leverage effect, definition, illustration, references to its existence, where else is it useful
 
@@ -30,12 +41,4 @@ The leverage effect in Modigliani-Miller and other places
 
 Plots
 
-\subsubsection{Leverage in China}
-
 Leverage in China, references
-
-\subsection{Objective}
-
-Research questions
-
-Possible methods, used method (no formulae)
