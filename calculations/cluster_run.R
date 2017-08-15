@@ -1,6 +1,7 @@
 library("zoo")
 library("xts")
 library("data.table")
+library("dplyr")
 library("stochvollev")
 
 run.version <- as.character(3)
@@ -95,18 +96,12 @@ priors <- list(
   mu.mean = hyperparam.grid[ind.hyper, 7],
   mu.var = hyperparam.grid[ind.hyper, 8]
 )
-result[["priors"]] <- priors
-result[["initials"]] <- initials
-result[["nsim"]] <- nsim
-result[["data"]] <- dat
-result[["dates"]] <- index(dat)
-result[["years"]] <- dat.chunk.indices[ind.period]
-result[["seed"]] <- thread.ind
 obsID <- head(obs[Period == dat.chunk.indices[ind.period] &
                     Company == names(dat),
                   ID], 1)
 if (obsID %in% inits$ID) {
-  initials <- as.list(inits[ID == obsID, Mu:Rho])
+  inits <- inits %>% rename(mu = Mu, sigma2 = Sigma2, phi = Phi, rho = Rho)
+  initials <- as.list(inits[ID == obsID, mu:rho])
   if (ind.inits > 1)
     quit(save = "no")
 } else {
@@ -118,13 +113,20 @@ if (obsID %in% inits$ID) {
   )
   initials <- lapply(initials, function (x, ind) x[ind], ind.inits)
 }
+result[["priors"]] <- priors
+result[["initials"]] <- initials
+result[["nsim"]] <- nsim
+result[["data"]] <- dat
+result[["dates"]] <- index(dat)
+result[["years"]] <- dat.chunk.indices[ind.period]
+result[["seed"]] <- thread.ind
 
 # run
 set.seed(thread.ind)
-result[["result"]] <- fnMCMCSampler(dat - mean(dat), nsim, priors, initials, iBurnin = nsim %/% 6)
+result[["result"]] <- fnMCMCSampler(dat - mean(dat), nsim, priors, initials, iBurnin = nsim %/% 6, sSigma2.Prior = "inv.gamma")
 
 # store only some quantiles of the posterior log variance
-result$result$h <- t(apply(result$result$h, 2, function (x, probs) quantile(x, probs = probs), c(.01, .05, .5, .95, .99)))
+result$result$h <- t(apply(result$result$h, 2, function (x, probs) quantile(x, probs = probs), c(.01, .05, .1, .25, .5, .75, .9, .95, .99)))
 
 # save results
 dirname <- paste0("../results/", run.version, "/")

@@ -1,6 +1,6 @@
 library(stochvollev)
 
-sink(file = "log.txt", type = "output", append = F)
+ID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
 set.seed(1)
 
@@ -22,25 +22,24 @@ for (dRho in c(-0.9, -0.6, -0.3, 0, 0.3, 0.6, 0.9)) {
 
 params <- params[-1, ]
 
-saveRDS(params, "params.RDS")
-saveRDS(dat, "gamma_project_dat.RDS")
+saveRDS(params, paste0("params_", ID, ".RDS"))
+saveRDS(dat, paste0("gamma_project_dat_", ID, ".RDS"))
 
 # Runs
 
-iNsim <- 10000
+iNsim <- 50000
 results <- list()
 
-for (i in seq_len(nrow(params))) {
-  ind <- length(results) + 1
-  lInit <- list(phi = params[i, "phi"], sigma2 = (params[i, "sigma"])^2, rho = params[i, "rho"], mu = params[i, "mu"])
-  results[[ind]] <- list()
-    lPriors <- list(mu.mean = -9, mu.var = 1, phi.a = 20, phi.b = 1.5,
-                    sigma2.shape = 2.25,  # prior mean 0.05 and variance 0.01
-                    sigma2.rate = 0.0625,
-                    rho.a = 1, rho.b = 1)
-    results[[ind]] <- fnMCMCSampler(dat[[i]]$y, iNsim,
-                         lInit = lInit, lPriors = lPriors,
-                         iBurnin = iNsim %/% 2)
-}
+i <- ID
+ind <- length(results) + 1
+lInit <- list(phi = params[i, "phi"], sigma2 = (params[i, "sigma"])^2, rho = params[i, "rho"], mu = params[i, "mu"])
+results[[ind]] <- list()
+  lPriors <- list(mu.mean = -9, mu.var = 1, phi.a = 20, phi.b = 1.5,
+                  sigma2.shape = 2.25,  # prior mean 0.05 and variance 0.01
+                  sigma2.rate = 0.0625,
+                  rho.a = 1, rho.b = 1)
+  results[[ind]] <- fnMCMCSampler(dat[[i]]$y, iNsim,
+                       lInit = lInit, lPriors = lPriors,
+                       iBurnin = iNsim %/% 2)
 
-saveRDS(results, "gamma_project_results.RDS")
+saveRDS(results, paste0("gamma_project_results", ID, ".RDS"))

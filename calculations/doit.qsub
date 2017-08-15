@@ -1,10 +1,10 @@
 #!/bin/bash
 ## COMMENT
 
-#$ -N LEVERAGE
-#$ -t 1:792
-#$ -tc 100
-#$ -o log
+#$ -N leverage3
+#$ -t 1:20
+#$ -tc 65
+#$ -o ../log
 #$ -j yes
 
 R-g --vanilla < cluster_run.R
