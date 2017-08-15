@@ -1,20 +1,25 @@
 library("zoo")
 library("xts")
+library("data.table")
 library("stochvollev")
 
-run.version <- as.character(2)
+run.version <- as.character(3)
 thread.ind <- as.integer(Sys.getenv("SGE_TASK_ID"))
 print(thread.ind)
 
 source("data.R")
+inits <- readRDS("initials.RDS")
+obs <- readRDS("observations.RDS")
+inits <- as.data.table(inits)
+obs <- as.data.table(obs)
 
-# 20x32x1x3 = 1920 threads
+# 20x32x1x4 = 2560 threads
 #thread.ind <- 391
 # thread.ind comes from above!
 n.period <- 32
 n.ticker <- 20
 n.hyper <- 1
-n.inits <- 3
+n.inits <- 4
 ind.hyper <- ((thread.ind-1) %/% (n.period*n.ticker*n.inits)) + 1
 rem.hyper <- thread.ind - (ind.hyper-1)*n.period*n.ticker*n.inits
 ind.ticker <- ((rem.hyper-1) %/% (n.period*n.inits)) + 1
@@ -77,18 +82,9 @@ for (phii in seq_len(nrow(phi.grid))) {
   }
 }
 
-# inits
-initials <- list(
-  phi = c(0.97, 0.85, 0.4),
-  sigma2 = c(0.01, 0.1, 0.01),
-  rho = c(-0.2, 0.1, 0),
-  mu = c(-9, -9, -9)
-)
-
 # setup
 result <- list()
 nsim <- 100000
-initials <- lapply(initials, function (x, ind.inits) x[ind.inits], ind.inits)
 priors <- list(
   phi.a = hyperparam.grid[ind.hyper, 1],
   phi.b = hyperparam.grid[ind.hyper, 2],
@@ -106,6 +102,22 @@ result[["data"]] <- dat
 result[["dates"]] <- index(dat)
 result[["years"]] <- dat.chunk.indices[ind.period]
 result[["seed"]] <- thread.ind
+obsID <- head(obs[Period == dat.chunk.indices[ind.period] &
+                    Company == names(dat),
+                  ID], 1)
+if (obsID %in% inits$ID) {
+  initials <- as.list(inits[ID == obsID, Mu:Rho])
+  if (ind.inits > 1)
+    quit(save = "no")
+} else {
+  initials <- list(
+    phi = c(0.9, 0.76, 0.6, 0.4),
+    sigma2 = c(0.01, 0.01, 0.01, 0.01),
+    rho = c(0.2, -0.4, 0.2, -0.4),
+    mu = c(-9, -9, -9, -9)
+  )
+  initials <- lapply(initials, function (x, ind) x[ind], ind.inits)
+}
 
 # run
 set.seed(thread.ind)

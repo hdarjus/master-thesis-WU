@@ -27,6 +27,7 @@ if (FALSE) {
   obs <- NULL  # observations
   h <- NULL  # variance estimates
   params <- NULL  # phi, rho, mu, sigma2
+  inits <- NULL
   # Read and handle files that correspond to the same dataset together
   for (filename.pat in res.setups.path) {
     counter <- counter + 1
@@ -43,6 +44,12 @@ if (FALSE) {
     }
     
     dataset <- files.list[[dataset.ind]]
+    inits <- bind_rows(inits,
+                       data.frame(ID = counter,
+                                  Mu = dataset$initials$mu,
+                                  Phi = dataset$initials$phi,
+                                  Sigma2 = dataset$initials$sigma2,
+                                  Rho = dataset$initials$rho))
     obs <- bind_rows(obs,
                      data.frame(ID = counter,
                                 Date = dataset$dates,
@@ -66,10 +73,10 @@ if (FALSE) {
                                    Sigma2 = dataset$result$samples$sigma2[thinning],
                                    Mu = dataset$result$samples$mu[thinning]))
   }
-  initials.df <- as.data.frame(do.call("rbind", lapply(files.list, function (x) unlist(x$initials))))
-  priors.df <- as.data.frame(t(unlist(files.list[[1]]$priors)))
-  saveRDS(initials.df, "initials.RDS")
-  saveRDS(priors.df, "priors.RDS")
+  #initials.df <- as.data.frame(do.call("rbind", lapply(files.list, function (x) unlist(x$initials))))
+  #priors.df <- as.data.frame(t(unlist(files.list[[1]]$priors)))
+  saveRDS(inits, "initials.RDS")
+  #saveRDS(priors.df, "priors.RDS")
   
   obs$Period <- as.factor(obs$Period)
   obs$Company <- as.factor(obs$Company)
