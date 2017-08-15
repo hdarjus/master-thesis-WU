@@ -100,8 +100,8 @@ obsID <- head(obs[Period == dat.chunk.indices[ind.period] &
                     Company == names(dat),
                   ID], 1)
 if (obsID %in% inits$ID) {
-  inits <- inits %>% rename(mu = Mu, sigma2 = Sigma2, phi = Phi, rho = Rho)
-  initials <- as.list(inits[ID == obsID, mu:rho])
+  inits <- inits %>% rename(phi = Phi, sigma2 = Sigma2, rho = Rho, mu = Mu)
+  initials <- as.list(inits %>% filter(ID == obsID) %>% select(phi, sigma2, rho, mu))
   if (ind.inits > 1)
     quit(save = "no")
 } else {
