@@ -4,7 +4,7 @@ library("data.table")
 library("dplyr")
 library("stochvollev")
 
-run.version <- as.character(3)
+run.version <- as.character(4)
 thread.ind <- as.integer(Sys.getenv("SGE_TASK_ID"))
 print(thread.ind)
 
@@ -28,6 +28,16 @@ rem.ticker <- rem.hyper - (ind.ticker-1)*n.period*n.inits
 ind.inits <- ((rem.ticker-1) %/% (n.period)) + 1
 rem.inits <- rem.ticker - (ind.inits-1)*n.period
 ind.period <- rem.inits
+
+if (thread.ind <= 96) {
+  ind.period <- 32
+  ind.ticker <- 6
+  ind.inits <- thread.ind
+} else {
+  ind.period <- 19
+  ind.ticker <- 11
+  ind.inits <- thread.ind - 96
+}
 
 print(c(ind.hyper, ind.ticker, ind.inits, ind.period))
 
@@ -96,23 +106,15 @@ priors <- list(
   mu.mean = hyperparam.grid[ind.hyper, 7],
   mu.var = hyperparam.grid[ind.hyper, 8]
 )
-obsID <- head(obs[Period == dat.chunk.indices[ind.period] &
-                    Company == names(dat),
-                  ID], 1)
-if (obsID %in% inits$ID) {
-  inits <- inits %>% rename(phi = Phi, sigma2 = Sigma2, rho = Rho, mu = Mu)
-  initials <- as.list(inits %>% filter(ID == obsID) %>% select(phi, sigma2, rho, mu))
-  if (ind.inits > 1)
-    quit(save = "no")
-} else {
-  initials <- list(
-    phi = c(0.9, 0.76, 0.6, 0.4),
-    sigma2 = c(0.01, 0.01, 0.01, 0.01),
-    rho = c(0.2, -0.4, 0.2, -0.4),
-    mu = c(-9, -9, -9, -9)
-  )
-  initials <- lapply(initials, function (x, ind) x[ind], ind.inits)
-}
+
+initials <- as.list(expand.grid(
+  phi = c(0.9, 0.76, 0.6, 0.4),
+  sigma2 = c(0.01, 0.1, 1),
+  rho = c(0.2, -0.1, -0.5, -0.8),
+  mu = c(-9, -6)
+))
+initials <- lapply(initials, function (x, ind) x[ind], ind.inits)
+
 result[["priors"]] <- priors
 result[["initials"]] <- initials
 result[["nsim"]] <- nsim

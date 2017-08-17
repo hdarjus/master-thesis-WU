@@ -2,8 +2,8 @@
 ## COMMENT
 
 #$ -N leverage3
-#$ -t 1:20
-#$ -tc 65
+#$ -t 1:192
+#$ -tc 64
 #$ -o ../log
 #$ -j yes
 

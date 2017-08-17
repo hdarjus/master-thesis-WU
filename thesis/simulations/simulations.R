@@ -40,6 +40,8 @@ lPriors <- list(mu.mean = -9, mu.var = 1, phi.a = 20, phi.b = 1.5,
                 rho.a = 1, rho.b = 1)
 results[[ind]] <- fnMCMCSampler(dat[[i]]$y, iNsim,
                      lInit = lInit, lPriors = lPriors,
-                     iBurnin = iNsim %/% 2)
+                     iBurnin = iNsim %/% 2, sSigma2.Prior = "inv.gamma")
+
+results[[ind]]$h <- t(apply(result[[ind]]$h, 2, function (x, probs) quantile(x, probs = probs), c(.01, .05, .1, .25, .5, .75, .9, .95, .99)))
 
 saveRDS(results, paste0("gamma_project_results", ID, ".RDS"))
