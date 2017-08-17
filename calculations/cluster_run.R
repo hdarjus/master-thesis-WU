@@ -1,43 +1,21 @@
 library("zoo")
 library("xts")
 library("data.table")
-library("dplyr")
+library("tidyverse")
 library("stochvollev")
 
-run.version <- as.character(4)
+run.version <- as.character(5)
 thread.ind <- as.integer(Sys.getenv("SGE_TASK_ID"))
 print(thread.ind)
 
 source("data.R")
-inits <- readRDS("initials.RDS")
-obs <- readRDS("observations.RDS")
-inits <- as.data.table(inits)
-obs <- as.data.table(obs)
+missing <- readRDS("missing.RDS")
 
-# 20x32x1x4 = 2560 threads
-#thread.ind <- 391
-# thread.ind comes from above!
-n.period <- 32
-n.ticker <- 20
-n.hyper <- 1
-n.inits <- 4
-ind.hyper <- ((thread.ind-1) %/% (n.period*n.ticker*n.inits)) + 1
-rem.hyper <- thread.ind - (ind.hyper-1)*n.period*n.ticker*n.inits
-ind.ticker <- ((rem.hyper-1) %/% (n.period*n.inits)) + 1
-rem.ticker <- rem.hyper - (ind.ticker-1)*n.period*n.inits
-ind.inits <- ((rem.ticker-1) %/% (n.period)) + 1
-rem.inits <- rem.ticker - (ind.inits-1)*n.period
-ind.period <- rem.inits
-
-if (thread.ind <= 96) {
-  ind.period <- 32
-  ind.ticker <- 6
-  ind.inits <- thread.ind
-} else {
-  ind.period <- 19
-  ind.ticker <- 11
-  ind.inits <- thread.ind - 96
-}
+row.ind <- ((thread.ind-1) %/% 32) + 1
+ind.period <- as.numeric(missing[row.ind, "period"])
+ind.ticker <- as.numeric(missing[row.ind, "ticker"])
+ind.inits <- (thread.ind %% 32) + 1
+ind.hyper <- 1
 
 print(c(ind.hyper, ind.ticker, ind.inits, ind.period))
 
@@ -109,9 +87,9 @@ priors <- list(
 
 initials <- as.list(expand.grid(
   phi = c(0.9, 0.76, 0.6, 0.4),
-  sigma2 = c(0.01, 0.1, 1),
+  sigma2 = c(0.01, 1),
   rho = c(0.2, -0.1, -0.5, -0.8),
-  mu = c(-9, -6)
+  mu = c(-9)
 ))
 initials <- lapply(initials, function (x, ind) x[ind], ind.inits)
 
