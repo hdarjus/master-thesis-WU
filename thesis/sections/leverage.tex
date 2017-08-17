@@ -1,24 +1,24 @@
 \section{Related work}
 
 Variance of stock returns plays an important role in many fields of finance.
-For example, it is crucial in capital asset pricing~\citep{skiadas2009asset}, portfolio management~\citep{chow2014study}, and contingent claim pricing~\citep{hull1987pricing}.
+For example, it is crucial in capital asset pricing, portfolio management, and contingent claim pricing~\citep{hull1987pricing,skiadas2009asset,chow2014study}.
 \citeauthor{Christie1982} wrote in 1982 that even though volatility was pivotal in these topics, little work was being done for understanding its properties.
 
 This has changed since 1982.
 That year~\citet{Engle1982} introduced the Autoregressive Conditional Heteroskestacity (ARCH) model that assumes non-constant variance conditional on past errors.
-The ARCH model was later extended in several different ways\footnote{For a more extensive overview, see~\citet{bollerslev1994arch}.}: generalised ARCH (GARCH) by~\citet{Bollerslev1986} models volatility as an Autoregressive Moving Average process~\citep{box1994time}, integrated GARCH by~\citet{engle1986modelling} for non-stationary volatility processes, continuous GARCH by~\citet{kluppelberg2004continuous}, to mention some of the well-known ones.
+The ARCH model was later extended in several different ways\footnote{For a more extensive overview, see~\citet{bollerslev1994arch}.}: generalised ARCH (GARCH) models volatility as an Autoregressive Moving Average process, integrated GARCH was designed for non-stationary volatility processes, and continuous GARCH for continuous time modelling, to mention some of the popular ones~\citep{Bollerslev1986,engle1986modelling,box1994time,kluppelberg2004continuous}.
 
-\citet{Nelson1991} introduced the first variant including asymmetric volatility, the exponential GARCH.
+\citet{Nelson1991} introduced the first variant featuring asymmetric volatility, the exponential GARCH.
 It models the logarithm of the variance by a suitable function of past shocks.
-Since then, quite a few versions have been developed targeting asymmetric volatility~\citep{engle1993measuring,glosten1993relation,zakoian1994threshold,sentana1995quadratic}, even Family GARCH by~\citet{hentschel1995all}, which is an omnibus nesting a variety of them.
+Since then, quite a few versions have been developed targeting asymmetric volatility including Family GARCH, which is an omnibus nesting a variety of the earlier ones~\citep{engle1993measuring,glosten1993relation,zakoian1994threshold,sentana1995quadratic,hentschel1995all}.
 
 Still in 1982, the Stochastic Volatility (SV) model was presented in~\citet{Taylor1982}, which has an unconditionally random variance process.
-Later, \citet{harvey1996estimation} and \citet{Jacquier2004} proposed two different formulations for the asymmetric SV model, both containing a correlation parameter that estimates the leverage effect, but they correlate different terms.
-~\citet{yu2005leverage} compared the two setups and concluded that the earlier one os appealing both in theory and in practice.
+Later, \citet{Harvey1996} and \citet{Jacquier2004} proposed two different formulations for the asymmetric SV model, both containing a correlation parameter that estimates the leverage effect, but they correlate different terms.
+~\citet{yu2005leverage} compared the two setups and concluded that the earlier one is appealing both in theory and in practice.
 
-The SV model is a promising alternative to GARCH-type models, in the literature SV's in-sample-fit is at least as good as a GARCH model with heavy-tailed errors~\citet{Kim1998,Chan2016}.
+The SV model is a promising alternative to GARCH-type models, in the literature SV's in-sample-fit is at least as good as a GARCH model with heavy-tailed errors.
 SV's main drawback is its parameter estimation methods, they are usually more involved than existing approaches for GARCH.
-Therefore, a lot of effort has been put into the development of efficient algorithms giving good fit for SV~\citep{Kim1998,jacquier2002bayesian,Omori2007,Kastner2014}.
+Therefore, a lot of effort has been put into the development of efficient algorithms giving good fit for SV~\citep{Kim1998,jacquier2002bayesian,Omori2007,Kastner2014,Chan2016}.
 
 Even before~\citet{black1976studies} first described the leverage effect, the original~\citet{black1973pricing} paper already discussed the impact of changing LR on stock price behaviour.
 Their reasoning was based on the popular structural model in corporate finance from~\citet{modigliani1958cost}.
