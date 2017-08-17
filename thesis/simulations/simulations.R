@@ -6,7 +6,7 @@ set.seed(1)
 
 # Data generation
 
-iN <- 500
+iN <- 1000
 dPhi <- 0.95
 dMu <- -9
 
@@ -27,19 +27,19 @@ saveRDS(dat, paste0("gamma_project_dat_", ID, ".RDS"))
 
 # Runs
 
-iNsim <- 50000
+iNsim <- 100000
 results <- list()
 
 i <- ID
 ind <- length(results) + 1
 lInit <- list(phi = params[i, "phi"], sigma2 = (params[i, "sigma"])^2, rho = params[i, "rho"], mu = params[i, "mu"])
 results[[ind]] <- list()
-  lPriors <- list(mu.mean = -9, mu.var = 1, phi.a = 20, phi.b = 1.5,
-                  sigma2.shape = 2.25,  # prior mean 0.05 and variance 0.01
-                  sigma2.rate = 0.0625,
-                  rho.a = 1, rho.b = 1)
-  results[[ind]] <- fnMCMCSampler(dat[[i]]$y, iNsim,
-                       lInit = lInit, lPriors = lPriors,
-                       iBurnin = iNsim %/% 2)
+lPriors <- list(mu.mean = -9, mu.var = 1, phi.a = 20, phi.b = 1.5,
+                sigma2.shape = 2.25,  # prior mean 0.05 and variance 0.01
+                sigma2.rate = 0.0625,
+                rho.a = 1, rho.b = 1)
+results[[ind]] <- fnMCMCSampler(dat[[i]]$y, iNsim,
+                     lInit = lInit, lPriors = lPriors,
+                     iBurnin = iNsim %/% 2)
 
 saveRDS(results, paste0("gamma_project_results", ID, ".RDS"))
