@@ -8,7 +8,7 @@ set.seed(137)
 
 # Explore results
 calfolder <- getwd()
-resfolder <- "../results/2/"  # results folder
+resfolder <- "../results/3/"  # results folder
 
 # Convergence
 ## Select the best initial value
