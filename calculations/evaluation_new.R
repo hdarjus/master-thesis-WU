@@ -1,27 +1,28 @@
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-library(data.table)
+library(tidyverse)
 library(forcats)
 
 set.seed(137)
 
 # Explore results
 calfolder <- getwd()
-resfolder <- "../results/3/"  # results folder
-
-# Convergence
-## Select the best initial value
+resfolder <- "../results/final-mix/"  # results folder
 
 ### Check which runs converged and use only 1 out of the 3 with different initial values.
 if (FALSE) {
   library(zoo)
   library(xts)
   
-  fnAcceptanceRatio <- function (x) mean(x[-1] != x[-length(x)])
+  #fnAcceptanceRatio <- function (x) mean(x[-1] != x[-length(x)])
+  
+  fnRemoveBurnin <- function (x) {
+    start.index <- sum(cumall(x[-1] == x[-length(x)])) + 1
+    if (start.index > 1)
+      x[start.index:length(x)]
+    else
+      x
+  }
   
   res.files <- list.files(resfolder)
-  res.setups.path <- unique(substr(res.files, start = 1, stop = 13))
   # Collect data and results into data frames
   counter <- 0  # common identifier
   obs <- NULL  # observations
@@ -29,61 +30,49 @@ if (FALSE) {
   params <- NULL  # phi, rho, mu, sigma2
   inits <- NULL
   # Read and handle files that correspond to the same dataset together
-  for (filename.pat in res.setups.path) {
+  for (file.path in res.files) {
     counter <- counter + 1
-    files.path <- list.files(resfolder, pattern = filename.pat)
-    files.list <- list()
-    for (file.path in files.path) {
-      files.list[[length(files.list) + 1]] <- readRDS(paste0(resfolder, file.path))
-    }
-    # Use the datasets with the highest acceptance ratio, but only if it is also reasonable
-    dataset.ar <- unlist(lapply(files.list, function (x, fn) fn(x$result$samples$phi), fnAcceptanceRatio))
-    dataset.ind <- which.max(dataset.ar)
-    if (dataset.ar[dataset.ind] < 0.2) {
-      next()
-    }
-    
-    dataset <- files.list[[dataset.ind]]
-    inits <- bind_rows(inits,
-                       data.frame(ID = counter,
-                                  Mu = dataset$initials$mu,
-                                  Phi = dataset$initials$phi,
-                                  Sigma2 = dataset$initials$sigma2,
-                                  Rho = dataset$initials$rho))
-    obs <- bind_rows(obs,
-                     data.frame(ID = counter,
-                                Date = dataset$dates,
-                                Period = dataset$years,  # to factor later
-                                Company = colnames(dataset$data),  # to factor later
-                                Values = as.numeric(coredata(dataset$data))))
-    h <- data.frame(ID = counter,
-                    Date = dataset$dates,
-                    Period = dataset$years,  # to factor later
-                    Company = colnames(dataset$data)) %>%  # to factor later
-      bind_cols(as.data.frame(dataset$result$h)) %>%
+    dataset <- readRDS(paste0(resfolder, file.path))
+    inits <- inits %>%
+      add_row(ID = counter,
+              Mu = dataset$initials$mu,
+              Phi = dataset$initials$phi,
+              Sigma2 = dataset$initials$sigma2,
+              Rho = dataset$initials$rho)
+    obs <- obs %>%
+      bind_rows(tibble(ID = counter,
+                       Date = dataset$dates,
+                       Period = dataset$years,  # to factor later
+                       Company = colnames(dataset$data),  # to factor later
+                       Values = as.numeric(coredata(dataset$data))))
+    h <- tibble(ID = counter,
+                Date = dataset$dates,
+                Period = dataset$years,  # to factor later
+                Company = colnames(dataset$data)) %>%  # to factor later
+      bind_cols(as_tibble(dataset$result$h)) %>%
       bind_rows(h)
     thinning <- seq(1, 100000, by = 40)  # I only use a part of the dataset for experimenting and formulating the results
     params <- bind_rows(params,
-                        data.frame(ID = counter,
-                                   Period = dataset$years,  # to factor later
-                                   Company = colnames(dataset$data),  # to factor later
-                                   Index = seq_along(thinning),
-                                   Phi = dataset$result$samples$phi[thinning],
-                                   Rho = dataset$result$samples$rho[thinning],
-                                   Sigma2 = dataset$result$samples$sigma2[thinning],
-                                   Mu = dataset$result$samples$mu[thinning]))
+                        tibble(ID = counter,
+                               Period = dataset$years,  # to factor later
+                               Company = colnames(dataset$data),  # to factor later
+                               Index = seq_along(thinning),
+                               Phi = dataset$result$samples$phi[thinning],
+                               Rho = dataset$result$samples$rho[thinning],
+                               Sigma2 = dataset$result$samples$sigma2[thinning],
+                               Mu = dataset$result$samples$mu[thinning]))
   }
   #initials.df <- as.data.frame(do.call("rbind", lapply(files.list, function (x) unlist(x$initials))))
   #priors.df <- as.data.frame(t(unlist(files.list[[1]]$priors)))
   saveRDS(inits, "initials.RDS")
   #saveRDS(priors.df, "priors.RDS")
   
-  obs$Period <- as.factor(obs$Period)
-  obs$Company <- as.factor(obs$Company)
-  h$Period <- as.factor(h$Period)
-  h$Company <- as.factor(h$Company)
-  params$Period <- as.factor(params$Period)
-  params$Company <- as.factor(params$Company)
+  obs$Period <- as_factor(obs$Period)
+  obs$Company <- as_factor(obs$Company)
+  h$Period <- as_factor(h$Period)
+  h$Company <- as_factor(h$Company)
+  params$Period <- as_factor(params$Period)
+  params$Company <- as_factor(params$Company)
   saveRDS(obs, "observations.RDS")
   saveRDS(h, "volatility.RDS")
   saveRDS(params, "parameters.RDS")

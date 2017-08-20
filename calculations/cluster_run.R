@@ -4,17 +4,17 @@ library("data.table")
 library("tidyverse")
 library("stochvollev")
 
-run.version <- as.character(5)
+run.version <- as.character(6)
 thread.ind <- as.integer(Sys.getenv("SGE_TASK_ID"))
 print(thread.ind)
 
 source("data.R")
-missing <- readRDS("missing.RDS")
+cutburning <- readRDS("cutburning.RDS")
 
-row.ind <- ((thread.ind-1) %/% 32) + 1
-ind.period <- as.numeric(missing[row.ind, "period"])
-ind.ticker <- as.numeric(missing[row.ind, "ticker"])
-ind.inits <- (thread.ind %% 32) + 1
+row.ind <- ((thread.ind-1) %/% 2) + 1
+ind.period <- as.numeric(cutburning[row.ind, 2])
+ind.ticker <- as.numeric(cutburning[row.ind, 1])
+ind.inits <- ((thread.ind-1) %% 2) + 1
 ind.hyper <- 1
 
 print(c(ind.hyper, ind.ticker, ind.inits, ind.period))
@@ -86,9 +86,9 @@ priors <- list(
 )
 
 initials <- as.list(expand.grid(
-  phi = c(0.9, 0.76, 0.6, 0.4),
-  sigma2 = c(0.01, 1),
-  rho = c(0.2, -0.1, -0.5, -0.8),
+  phi = c(0.8),
+  sigma2 = c(0.05),
+  rho = c(0.2, -0.5),
   mu = c(-9)
 ))
 initials <- lapply(initials, function (x, ind) x[ind], ind.inits)
@@ -103,7 +103,13 @@ result[["seed"]] <- thread.ind
 
 # run
 set.seed(thread.ind)
-result[["result"]] <- fnMCMCSampler(dat - mean(dat), nsim, priors, initials, iBurnin = nsim %/% 6, sSigma2.Prior = "inv.gamma")
+result[["result"]] <- fnMCMCSampler(dat - mean(dat), nsim, priors, initials, iBurnin = nsim %/% 3, sSigma2.Prior = "inv.gamma")
+
+rho.samples <- result$result$samples$rho
+start.burnin.cut <- sum(cumall(rho.samples[-1] == rho.samples[-length(rho.samples)])) + 1
+result$result$samples <- lapply(result$result$samples, function (x, ind) x[ind:length(x)], start.burnin.cut)
+result$result$h <- result$result$h[ind:nrow(h), ]
+result$result$weights <- result$result$weights[ind:length(result$result$weights)]
 
 # store only some quantiles of the posterior log variance
 result$result$h <- t(apply(result$result$h, 2, function (x, probs) quantile(x, probs = probs), c(.01, .05, .1, .25, .5, .75, .9, .95, .99)))

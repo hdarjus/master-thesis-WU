@@ -7,11 +7,11 @@ merged.h <- NULL
 merged.samples <- NULL
 merged.dat <- NULL
 
-for (i in 2*(1:7)) {
-  dataind <- as.integer(i/2)
-  params <- readRDS(paste0("results4/params_", i, ".RDS"))
-  dat.list <- readRDS(paste0("results4/gamma_project_dat_", i, ".RDS"))
-  results <- readRDS(paste0("results4/gamma_project_results", i, ".RDS"))
+dat.list <- readRDS(paste0("simdat.RDS"))
+
+for (i in 1:7) {
+  dataind <- as.integer(i)
+  results <- readRDS(paste0("results5/gamma_project_results", i, ".RDS"))
   
   merged.h <- as_tibble(results$h) %>%
     mutate(Data.ind = dataind, Time.ind = seq_len(n())) %>%
@@ -29,12 +29,11 @@ for (i in 2*(1:7)) {
     mutate(Time.ind = index(dat.list[[dataind]]), Data.ind = dataind) %>%
     bind_rows(merged.dat)
 }
+
 saveRDS(merged.dat, file = "dat.RDS")
 saveRDS(gather(merged.samples, key = "Param", value = "Value", Phi:Mu, factor_key = T),
         file = "res-sam.RDS")
 saveRDS(merged.h, file = "res-h.RDS")
-
-saveRDS(params[2*(1:7), ], file = "params.RDS")
 
 rm(list = ls())
 
@@ -51,7 +50,7 @@ reweight <- function (x, weight) {
 rownames(params) <- 1:7
 print(xtable(params, caption = "Parameters used for simulation.", label = "tab:params"), booktabs = T, type = "latex")
 
-dataind <- 7
+dataind <- 4
 # Good
 ## Param density plot
 ggplot(samples %>% filter(Data.ind == dataind, Param == "Rho"), aes(x = Value)) +
@@ -112,6 +111,7 @@ dat %>%
   add_column(Quantile = "Simulated") %>%
   select(Data.ind, Time.ind, Quantile, Value) %>%
   bind_rows(h) %>%
+  filter(Data.ind %in% c(1, 4, 7)) %>%
   ggplot(aes(x = Time.ind, y = Value)) +
     geom_line(aes(color = Quantile)) +
     facet_grid(Data.ind ~ ., scales = "free_y") +
