@@ -2,32 +2,22 @@ library(stochvollev)
 
 ID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
-set.seed(1)
+set.seed(ID)
 
 # Data generation
 
 iN <- 1000
 dPhi <- 0.95
 dMu <- -9
+dSigma2 <- 0.01
 
-params <- data.frame(n = NA_integer_, phi = NA_real_, mu = NA_real_, rho = NA_real_, sigma = NA_real_)
-dat <- list()
-
-for (dRho in c(-0.9, -0.6, -0.3, 0, 0.3, 0.6, 0.9)) {
-  for (dSigma in c(0.01, 0.1)) {
-    params <- rbind(params, c(iN, dPhi, dMu, dRho, dSigma))
-    dat[[length(dat) + 1]] <- fnGenLogSV(iN, dRho, dSigma, dPhi, dMu)
-  }
-}
-
-params <- params[-1, ]
-
-saveRDS(params, paste0("params_", ID, ".RDS"))
-saveRDS(dat, paste0("gamma_project_dat_", ID, ".RDS"))
+params <- readRDS("params.RDS")
+dat <- readRDS("simdat.RDS")
+dat <- dat[[ID]]
 
 # Runs
 
-iNsim <- 100000
+iNsim <- 50000
 results <- list()
 
 i <- ID
