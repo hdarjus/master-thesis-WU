@@ -107,9 +107,10 @@ result[["result"]] <- fnMCMCSampler(dat - mean(dat), nsim, priors, initials, iBu
 
 rho.samples <- result$result$samples$rho
 start.burnin.cut <- sum(cumall(rho.samples[-1] == rho.samples[-length(rho.samples)])) + 1
+print(start.burnin.cut)
 result$result$samples <- lapply(result$result$samples, function (x, ind) x[ind:length(x)], start.burnin.cut)
-result$result$h <- result$result$h[ind:nrow(h), ]
-result$result$weights <- result$result$weights[ind:length(result$result$weights)]
+result$result$h <- result$result$h[start.burnin.cut:nrow(result$result$h), ]
+result$result$weights <- result$result$weights[start.burnin.cut:length(result$result$weights)]
 
 # store only some quantiles of the posterior log variance
 result$result$h <- t(apply(result$result$h, 2, function (x, probs) quantile(x, probs = probs), c(.01, .05, .1, .25, .5, .75, .9, .95, .99)))

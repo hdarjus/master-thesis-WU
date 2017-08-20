@@ -1,9 +1,9 @@
 #!/bin/bash
 ## COMMENT
 
-#$ -N leverage3
-#$ -t 1:1280
-#$ -tc 40
+#$ -N leverage
+#$ -t 1:64
+#$ -tc 64
 #$ -o ../log
 #$ -j yes
 
