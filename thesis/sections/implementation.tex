@@ -37,13 +37,46 @@ The seven setups that are detailed here all had the same settings except for the
 	h_1\mid\phi,\sigma,\mu &\sim\mathcal{N}(\mu,\sigma^2/(1-\phi^2)).
 	\end{align*}
 \end{description}
-The simulated values used here are similar to the ones found in the literature~\citep{Omori2007,Kastner2014}.
+The simulated true values used here are similar to the ones found in the literature~\citep{Omori2007,Kastner2014}.
 Variance is usually highly persistent and has a mean about $\exp(-9/2)\approx 1\%$, these are encoded both in the simulated value and the prior.
 The chosen prior for $\sigma^2$ has mean 0.05 and standard deviation 0.1, so the prior is not too far from the simulated value.
 The latent vector is initialised by $h_1$, and its prior is chosen to be the stationary distribution of the AR(1) process that models $\bm h$.
 Finally, we check a wide range of $\rho$ values, and the prior is intended to be non-informative.
 
-Plots:
-data plots: return trace on stdev area,
-simulated-posterior plot for h,
-simulated-prior-posterior plot for rho
+The simulation was based on model~\ref{form:orig_model}.
+All the parameters and $h_1$ need to be initialised, and a realisation of the two white-noise processes has to be generated.
+Finally, by plugging in the model we acquire $\bm h$ and $\bm y$ as well.
+
+Figure~\ref{fig:simdata} illustrates the simulated dataset, the price process and the latent volatility process, with three chosen values of $\rho$.
+It also demonstrates how the different correlation signs affect the directly observable relationship.
+High values of $\rho$ make the price process and the volatility do mirrored changes, while low values imply parallel movements.
+
+Figure~\ref{fig:volatility} presents how the posterior variance fits the simulated variance.
+In general, comovement of the posterior median with the simulated values is observed, and stronger correlation seemingly brings better fit.
+That result is not surprising since there is less information in the directly measured return series about the variance when correlation is low.
+
+There are three distributions corresponding to each parameter in the current estimation method: the prior, the approximate posterior and the corrected posterior.
+Figure~\ref{fig:rhodensities} shows these and the simulated value for $\rho$.
+For low absolute values the correction outlined in section~\ref{sec:reweight} has quite low impact, the difference is invisible on the plot, but it is larger for more extreme $\rho$.
+Interestingly, the posterior is closer to the simulated value for negative $\rho$, but the ``true'' value is significant in each case.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{simulations/data-plot}
+	\caption{Simulated price process scaled to 0.03 with its return's standard deviation. The relationship is visible: with high positive correlation (top) the price process and the volatility move together; with no correlation (middle) there is no visible pattern; with high negative correlation (bottom) the price process and the volatility move to the opposite direction.}
+	\label{fig:simdata}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{simulations/variance-plot}
+	\caption{Simulated values and posterior quantiles of the variance process.}
+	\label{fig:volatility}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{simulations/rho-densities}
+	\caption{Prior, approximate and corrected posterior distributions and the simulated value for $\rho$.}
+	\label{fig:rhodensities}
+\end{figure}

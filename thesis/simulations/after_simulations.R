@@ -53,6 +53,7 @@ print(xtable(params, caption = "Parameters used for simulation.", label = "tab:p
 # Good
 dat %>%
   filter(Data.ind %in% c(1, 4, 7)) %>%
+  mutate(Data.ind = factor(as.character(Data.ind), labels = c("7", "4", "1"))) %>%
   group_by(Data.ind) %>%
   mutate(Price = 0.03*exp(cumsum(Y))) %>%
   ungroup() %>%
@@ -87,8 +88,8 @@ samples %>%
   theme_bw() +
   theme(legend.position = "bottom", strip.text.x = element_text(margin = margin(.1, 0, .1, 0, "cm"))) +
   ylab("Density") +
-  scale_fill_manual("Density", values = c("Approximate posterior" = "purple", "Prior" = "gray", "Posterior" = "blue")) +
-  scale_color_manual("Point", values = c("Simulated" = "red")) +
+  scale_fill_manual("", values = c("Approximate posterior" = "purple", "Prior" = "gray", "Posterior" = "blue")) +
+  scale_color_manual("", values = c("Simulated" = "red")) +
   ggtitle(expression(paste(rho, " simulated value and densities")))
 
 ggplot(samples %>% filter(Data.ind == dataind, Param == "Rho"), aes(x = Value)) +
