@@ -1,22 +1,49 @@
 \section{Implementation}
 
-\citeauthor{Nakajima2009} developed and published a software that was used for their calculations~\citep{nakajima2009code}.
-However, that was written in the proprietary Ox language, which is only freely available with limited features for academic and teaching purposes~\citep{doornik2009object}.
-Apart from investigating the behavior of leverage, this master thesis also aimed at providing a freely available solution.
-This section provides details and tests about this implementation, which will be published under the GNU GPLv3 License~\citep{gplv3}.
+\citeauthor{Nakajima2009} developed and published a software that was used for their calculations using SV with leverage~\citep{nakajima2009code}.
+However, that software was written in the proprietary Ox language, which is only freely available with limited features for academic and teaching purposes~\citep{doornik2009object}.
+Apart from investigating the behavior of leverage, this master thesis also partly aimed at providing a freely available solution for fitting SV with leverage.
+This section provides details and tests about our implementation, which will be published under the GNU GPLv3 License~\citep{gplv3}.
 In the meantime, the software is available upon request from the author.
 
 \subsection{Framework}
 
-The software is written mainly in R~\citep{rlanguage}, and some parts are in C++~\citep{iso2016iec} via the package Rcpp~\citep{rcpp2011} for the sake of efficiency.
+The software is written mainly in R, and some parts are in C++ via the package Rcpp for the sake of efficiency~\citep{rlanguage,rcpp2011,iso2016iec}.
 There are two parts to the software: an R package that provides a function that runs the algorithm detailed in Section~\ref{sec:estimlev}, and a set of individual R scripts that apply that function on data, evaluate results and create plots.
-Other packages used for the model are numDeriv~\citep{rnumderiv}, Matrix~\citep{rmatrix}, testthat~\citep{rtestthat}, mvtnorm~\citep{rmvtnorm} and MCMCpack~\citep{rmcmcpack}.
-For data manipulation and visualisation the packages tidyr~\citep{rtidyr}, dplyr~\citep{rdplyr} and ggplot2~\citep{rggplot2} are used.
+Other packages used for the model are numDeriv, Matrix, testthat, mvtnorm and MCMCpack.
+For data manipulation and visualisation the tidyverse is used~\citep{rnumderiv,rmatrix,rtestthat,rmvtnorm,rmcmcpack,rtidyverse}.
 
-\subsection{Simulation}
+\subsection{Simulation}\label{sec:simulation}
 
-Simulation tests of the model fitting package are shown in this section.
+The main task of the software is to estimate leverage, thus tests were centred around different simulated values of $\rho$.
+The seven setups that are detailed here all had the same settings except for the simulated value of $\rho$:
+\begin{description}
+	\item[``True'', simulated values]
+	\begin{align*}
+	\phi &= 0.95, \\
+	\sigma^2 &= 0.01, \\
+	\mu &= -9, \\
+	T &= 1000,
+	\end{align*}
+	\begin{equation*}
+	\rho\in[-0.9,-0.6,-0.3,0,0.3,0.6,0.9].
+	\end{equation*}
+	\item[Prior distributions]
+	\begin{align*}
+	\frac{\phi+1}2 &\sim\text{Beta}(20,1.5), \\
+	\sigma^2 &\sim\text{InverseGamma}(2.25,\text{rate}=0.0625), \\
+	\rho &\sim\mathcal{U}(-1,1), \\
+	\mu &\sim\mathcal{N}(-9,1), \\
+	h_1\mid\phi,\sigma,\mu &\sim\mathcal{N}(\mu,\sigma^2/(1-\phi^2)).
+	\end{align*}
+\end{description}
+The simulated values used here are similar to the ones found in the literature~\citep{Omori2007,Kastner2014}.
+Variance is usually highly persistent and has a mean about $\exp(-9/2)\approx 1\%$, these are encoded both in the simulated value and the prior.
+The chosen prior for $\sigma^2$ has mean 0.05 and standard deviation 0.1, so the prior is not too far from the simulated value.
+The latent vector is initialised by $h_1$, and its prior is chosen to be the stationary distribution of the AR(1) process that models $\bm h$.
+Finally, we check a wide range of $\rho$ values, and the prior is intended to be non-informative.
 
-Setup
-
-Plots
+Plots:
+data plots: return trace on stdev area,
+simulated-posterior plot for h,
+simulated-prior-posterior plot for rho
