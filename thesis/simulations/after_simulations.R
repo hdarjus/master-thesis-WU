@@ -1,5 +1,5 @@
-library(tidyverse)
 library(plotly)
+library(tidyverse)
 library(forcats)
 library(zoo)
 
@@ -7,7 +7,7 @@ merged.h <- NULL
 merged.samples <- NULL
 merged.dat <- NULL
 
-dat.list <- readRDS(paste0("simdat.RDS"))
+dat.list <- readRDS(paste0("simdat2.RDS"))
 
 for (i in 1:7) {
   dataind <- as.integer(i)
@@ -18,7 +18,7 @@ for (i in 1:7) {
     gather(key = "Quantile", value = "Value", 1:9, factor_key = T) %>%
     bind_rows(merged.h)
   
-  merged.samples <- results$samples %>%
+  merged.samples <- as_tibble(results$samples) %>%
     rename(Phi = phi, Rho = rho, Mu = mu, Sigma2 = sigma2) %>%
     mutate(Draw.ind = seq_len(n()), Data.ind = dataind) %>%
     add_column(Weights = results$weights) %>%
@@ -50,9 +50,47 @@ reweight <- function (x, weight) {
 rownames(params) <- 1:7
 print(xtable(params, caption = "Parameters used for simulation.", label = "tab:params"), booktabs = T, type = "latex")
 
-dataind <- 4
+# Good
+dat %>%
+  filter(Data.ind %in% c(1, 4, 7)) %>%
+  group_by(Data.ind) %>%
+  mutate(Price = 0.03*exp(cumsum(Y))) %>%
+  ungroup() %>%
+  ggplot(aes(x = Time.ind)) +
+  #geom_area(aes(y = -exp(H/2), fill = "St.dev.")) +
+  geom_area(aes(y = exp(H/2), fill = "St.dev.")) +
+  #geom_line(aes(y = Y, color = "Return"), alpha = 0.9) +
+  geom_line(aes(y = Price, color = "Price")) +
+  facet_grid(Data.ind ~ ., scales = "free_y", labeller = labeller(Data.ind = c("1" = "rho = -0.9", "2" = "rho = -0.6", "3" = "rho = -0.3", "4" = "rho = 0", "5" = "rho = 0.3", "6" = "rho = 0.6", "7" = "rho = 0.9"))) +
+  theme_bw() +
+  theme(legend.position = "bottom") +
+  xlab("Time") +
+  ylab("Value") +
+  scale_fill_manual("", values = c("St.dev." = "gray40")) +
+  scale_color_manual("", values = c("Price" = "black")) +
+  ggtitle("Simulated price process and standard devation")
+
 # Good
 ## Param density plot
+samples %>%
+  filter(Param == "Rho") %>%
+  group_by(Data.ind) %>%
+  mutate(True = params[Data.ind, "rho"], Reweighted.Value = reweight(Value, Weights)) %>%
+  ungroup() %>%
+  ggplot() +
+  stat_function(fun = function (x) dbeta((x+1)/2, 1, 1), mapping = aes(fill = "Prior"), geom = "area", alpha = 0.65, linetype = "blank") +
+  geom_density(aes(x = Value, y = ..density.., fill = "Approximate posterior"), alpha = 0.65, linetype = "blank") +
+  geom_density(aes(x = Reweighted.Value, y = ..density.., fill = "Posterior"), alpha = 0.65, linetype = "blank") +
+  geom_vline(aes(xintercept = True, color = "Simulated")) +
+  facet_wrap(~ Data.ind, ncol = 3, labeller = labeller(Data.ind = c("1" = "rho = -0.9", "2" = "rho = -0.6", "3" = "rho = -0.3", "4" = "rho = 0", "5" = "rho = 0.3", "6" = "rho = 0.6", "7" = "rho = 0.9"))) +
+  xlim(-1, 1) +
+  theme_bw() +
+  theme(legend.position = "bottom", strip.text.x = element_text(margin = margin(.1, 0, .1, 0, "cm"))) +
+  ylab("Density") +
+  scale_fill_manual("Density", values = c("Approximate posterior" = "purple", "Prior" = "gray", "Posterior" = "blue")) +
+  scale_color_manual("Point", values = c("Simulated" = "red")) +
+  ggtitle(expression(paste(rho, " simulated value and densities")))
+
 ggplot(samples %>% filter(Data.ind == dataind, Param == "Rho"), aes(x = Value)) +
   geom_density(aes(color = "Posterior")) +
   stat_function(fun = function (x) dbeta((x+1)/2, 1, 1), mapping = aes(color = "Prior")) +
@@ -74,7 +112,7 @@ samples %>%
 
 ## Density plot
 g <- samples %>%
-  filter(Param == "Phi") %>%
+  filter(Param == "Rho") %>%
   select(Draw.ind, Data.ind, Value) %>%
   ggplot(aes(x = Value)) +
     geom_density(aes(y = ..density..)) +
@@ -111,14 +149,16 @@ dat %>%
   add_column(Quantile = "Simulated") %>%
   select(Data.ind, Time.ind, Quantile, Value) %>%
   bind_rows(h) %>%
-  filter(Data.ind %in% c(1, 4, 7)) %>%
-  ggplot(aes(x = Time.ind, y = Value)) +
-    geom_line(aes(color = Quantile)) +
-    facet_grid(Data.ind ~ ., scales = "free_y") +
-    theme_bw() +
-    theme(legend.position = "right") +
-    scale_color_manual("Quantiles (%)", values = c("1%" = "gray85", "5%" = "gray73", "10%" = "gray60", "25%" = "gray45", "50%" = "gray10", "75%" = "gray45", "90%" = "gray60", "95%" = "gray73", "99%" = "gray85", "Simulated" = "red")) +
-    ggtitle("Posterior variance")
+  mutate(Data.ind = factor(as.character(Data.ind), labels = as.character(rev(1:7)))) %>%
+  ggplot(aes(x = Time.ind, y = exp(Value))) +
+  geom_line(aes(color = factor(Quantile, labels = c("1%", "5%", "10%", "25%", "50%", "75%", "90%", "95%", "99%", "Simulated")))) +
+  facet_grid(Data.ind ~ ., labeller = labeller(Data.ind = c("1" = "rho = -0.9", "2" = "rho = -0.6", "3" = "rho = -0.3", "4" = "rho = 0", "5" = "rho = 0.3", "6" = "rho = 0.6", "7" = "rho = 0.9"))) +
+  theme_bw() +
+  theme(legend.position = "bottom", strip.text.x = element_text(margin = margin(.1, 0, .1, 0, "cm"))) +
+  xlab("Time") +
+  ylab("Value") +
+  scale_color_manual("Quantiles (%)", values = c("1%" = "gray85", "5%" = "gray73", "10%" = "gray60", "25%" = "gray45", "50%" = "gray10", "75%" = "gray45", "90%" = "gray60", "95%" = "gray73", "99%" = "gray85", "Simulated" = "red")) +
+  ggtitle("Simulated and posterior variance")
 
 ggplot(dat, aes(x = Time.ind, y = exp(H))) +
   geom_line() +
