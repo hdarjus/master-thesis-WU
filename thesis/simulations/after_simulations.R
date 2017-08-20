@@ -9,9 +9,9 @@ merged.dat <- NULL
 
 for (i in 2*(1:7)) {
   dataind <- as.integer(i/2)
-  params <- readRDS(paste0("results2/params_", i, ".RDS"))
-  dat.list <- readRDS(paste0("results2/gamma_project_dat_", i, ".RDS"))
-  results <- readRDS(paste0("results2/gamma_project_results", i, ".RDS"))
+  params <- readRDS(paste0("results4/params_", i, ".RDS"))
+  dat.list <- readRDS(paste0("results4/gamma_project_dat_", i, ".RDS"))
+  results <- readRDS(paste0("results4/gamma_project_results", i, ".RDS"))
   
   merged.h <- as_tibble(results$h) %>%
     mutate(Data.ind = dataind, Time.ind = seq_len(n())) %>%
@@ -24,9 +24,9 @@ for (i in 2*(1:7)) {
     add_column(Weights = results$weights) %>%
     bind_rows(merged.samples)
   
-  merged.dat <- as_tibble(coredata(dat.list[[i]])) %>%
+  merged.dat <- as_tibble(coredata(dat.list[[dataind]])) %>%
     rename(Y = y, H = h, Eps = eps, Eta = eta) %>%
-    mutate(Time.ind = index(dat.list[[i]]), Data.ind = dataind) %>%
+    mutate(Time.ind = index(dat.list[[dataind]]), Data.ind = dataind) %>%
     bind_rows(merged.dat)
 }
 saveRDS(merged.dat, file = "dat.RDS")
@@ -50,6 +50,19 @@ reweight <- function (x, weight) {
 
 rownames(params) <- 1:7
 print(xtable(params, caption = "Parameters used for simulation.", label = "tab:params"), booktabs = T, type = "latex")
+
+dataind <- 7
+# Good
+## Param density plot
+ggplot(samples %>% filter(Data.ind == dataind, Param == "Rho"), aes(x = Value)) +
+  geom_density(aes(color = "Posterior")) +
+  stat_function(fun = function (x) dbeta((x+1)/2, 1, 1), mapping = aes(color = "Prior")) +
+  geom_vline(data = data.frame(X = params[dataind, "rho"]), mapping = aes(xintercept = X, color = "Simulated"), show.legend = F) +
+  xlim(-1, 1) +
+  theme_bw() +
+  theme(legend.position = "right") +
+  scale_color_manual("", values = c("Posterior" = "black", "Prior" = "gray", "Simulated" = "green")) +
+  ggtitle(expression(paste(rho, " densities")))
 
 # Good
 ## Traceplot
@@ -94,14 +107,18 @@ for (i in seq(1, 7)) {
 
 # Good
 ## Variance
-ggplot(h, aes(x = Time.ind, y = exp(Value))) +
-  geom_line(aes(color = Quantile)) +
-  geom_line(data = dat, aes(x = Time.ind, y = exp(H), color = "Simulated")) +
-  facet_grid(Data.ind ~ ., scales = "free_y") +
-  theme_bw() +
-  theme(legend.position = "right") +
-  scale_color_manual("Quantiles (%)", values = c("gray85", "gray73", "gray60", "gray45", "gray10", "gray45", "gray60", "gray73", "gray85", "red")) +
-  ggtitle("Posterior variance")
+dat %>%
+  rename(Value = H) %>%
+  add_column(Quantile = "Simulated") %>%
+  select(Data.ind, Time.ind, Quantile, Value) %>%
+  bind_rows(h) %>%
+  ggplot(aes(x = Time.ind, y = Value)) +
+    geom_line(aes(color = Quantile)) +
+    facet_grid(Data.ind ~ ., scales = "free_y") +
+    theme_bw() +
+    theme(legend.position = "right") +
+    scale_color_manual("Quantiles (%)", values = c("1%" = "gray85", "5%" = "gray73", "10%" = "gray60", "25%" = "gray45", "50%" = "gray10", "75%" = "gray45", "90%" = "gray60", "95%" = "gray73", "99%" = "gray85", "Simulated" = "red")) +
+    ggtitle("Posterior variance")
 
 ggplot(dat, aes(x = Time.ind, y = exp(H))) +
   geom_line() +
@@ -198,21 +215,7 @@ ggplot(samples %>% filter(Data.ind == dataind, Param == "Sigma2"), aes(x = Value
   scale_color_manual("", values = c("gamma" = "purple", "inv.gamma" = "orange", "prior.g" = "gray40", "prior.invg" = "gray70", "simul" = "green"), labels = c("gamma" = "Posterior Scen.Gamma", "inv.gamma" = "Posterior Scen.InvGamma", "prior.g" = "Prior Gamma", "prior.invg" = "Prior InvGamma", "simul" = "Simulated")) +
   ggtitle(expression(paste(sigma^2, " densities")))
 
-dataind <- 5
-# Good
-## Param density plot
-ggplot(samples %>% filter(Data.ind == dataind, Param == "Rho"), aes(x = Value)) +
-  geom_density(aes(color = "Posterior")) +
-  stat_function(fun = function (x) dbeta((x+1)/2, 1, 1), mapping = aes(color = "Prior")) +
-  geom_vline(data = data.frame(X = params[dataind, "rho"]), mapping = aes(xintercept = X, color = "Simulated"), show.legend = F) +
-  xlim(-1, 1) +
-  theme_bw() +
-  theme(legend.position = "right") +
-  scale_color_manual("", values = c("Posterior" = "black", "Prior" = "gray", "Simulated" = "green")) +
-  ggtitle(expression(paste(rho, " densities")))
 
-
-# Good probably
 ## Joint density plot
 samples %>%
   filter(Data.ind == dataind, Param %in% c("Sigma2", "Phi")) %>%
