@@ -53,7 +53,9 @@ if (FALSE) {
                 Company = company) %>%  # to factor later
       bind_cols(as_tibble(dataset$result$h)) %>%
       bind_rows(h)
-    thinning <- seq(1, length(dataset$result$weights), by = 50)  # I only use a part of the dataset for experimenting and formulating the results
+    rho <- dataset$result$samples$rho
+    start.id <- sum(cumall(c(T, rho[-1] == rho[-length(rho)])))
+    thinning <- as.integer(seq(start.id, length(rho), length.out = 2000))  # I only use a part of the dataset for experimenting and formulating the results
     params <- bind_rows(params,
                         tibble(ID = counter,
                                Period = dataset$years,  # to factor later
@@ -94,8 +96,12 @@ if (FALSE) {
     gather(key = "Param", value = "Value", Phi:Mu, factor_key = TRUE) %>%
     left_join(comps, by = "Company")
   saveRDS(params, "parameters.RDS")
+  saveRDS(comps, "companies.RDS")
   
   rm(list = ls())
+  
+  #pars %>% filter(Period == levels(Period)[1], Country == "GER", Param == "Rho") %>% select(Company, Value, Number) %>% group_by(Number) %>% summarise(Mean = mean(Value), Co = first(Company)) %>% select(Number, Co, Mean) %>% arrange(Mean)
+  #for (i in 1:10) {pars[Period == levels(Period)[1] & Param == "Rho" & Company == as.matrix(chn.ranks)[i, "Co"], "Number"] <- i}
 }
 
 # Read data
@@ -193,12 +199,16 @@ ggplot(gather(tmp, key = "Colname", value = "Value", a, b, factor_key = T),
 #####
 
 ggplot(pars %>%
-         filter(Param == "Rho") %>%
+         filter(Param == "Rho", Period %in% head(levels(Period), 3)) %>%
          select(Period, Index, Value, Company, Country, Number)) +
   stat_density(aes(x = Value, fill = ..density.., y = Number, group = Company), geom = "raster", position = "identity") +
+  geom_vline(xintercept = 0, color = "red", show.legend = F) +
   facet_grid(Period ~ Country) +
   theme_bw() +
   theme(strip.text.y = element_text(angle = 0), legend.position = "right",
-        axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+        axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+        panel.spacing = unit(0.1, "lines")) +
   ylab("Company") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
   guides(col = guide_legend(ncol = 1))
