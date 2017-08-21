@@ -28,11 +28,13 @@ if (FALSE) {
   obs <- NULL  # observations
   h <- NULL  # variance estimates
   params <- NULL  # phi, rho, mu, sigma2
-  inits <- NULL
+  inits <- tibble(ID = integer(), Mu = numeric(), Phi = numeric(), Sigma2 = numeric(), Rho = numeric())
   # Read and handle files that correspond to the same dataset together
   for (file.path in res.files) {
     counter <- counter + 1
     dataset <- readRDS(paste0(resfolder, file.path))
+    company <- gsub(pattern = "^X", replacement = "", x = colnames(dataset$data))
+    company <- gsub(pattern = "\\.", replacement = " ", x = company)
     inits <- inits %>%
       add_row(ID = counter,
               Mu = dataset$initials$mu,
@@ -43,38 +45,54 @@ if (FALSE) {
       bind_rows(tibble(ID = counter,
                        Date = dataset$dates,
                        Period = dataset$years,  # to factor later
-                       Company = colnames(dataset$data),  # to factor later
+                       Company = company,  # to factor later
                        Values = as.numeric(coredata(dataset$data))))
     h <- tibble(ID = counter,
                 Date = dataset$dates,
                 Period = dataset$years,  # to factor later
-                Company = colnames(dataset$data)) %>%  # to factor later
+                Company = company) %>%  # to factor later
       bind_cols(as_tibble(dataset$result$h)) %>%
       bind_rows(h)
-    thinning <- seq(1, 100000, by = 40)  # I only use a part of the dataset for experimenting and formulating the results
+    thinning <- seq(1, length(dataset$result$weights), by = 50)  # I only use a part of the dataset for experimenting and formulating the results
     params <- bind_rows(params,
                         tibble(ID = counter,
                                Period = dataset$years,  # to factor later
-                               Company = colnames(dataset$data),  # to factor later
+                               Company = company,  # to factor later
                                Index = seq_along(thinning),
                                Phi = dataset$result$samples$phi[thinning],
                                Rho = dataset$result$samples$rho[thinning],
                                Sigma2 = dataset$result$samples$sigma2[thinning],
-                               Mu = dataset$result$samples$mu[thinning]))
+                               Mu = dataset$result$samples$mu[thinning],
+                               Weight = dataset$result$weights[thinning]/sum(dataset$result$weights[thinning])))
   }
   #initials.df <- as.data.frame(do.call("rbind", lapply(files.list, function (x) unlist(x$initials))))
   #priors.df <- as.data.frame(t(unlist(files.list[[1]]$priors)))
   saveRDS(inits, "initials.RDS")
+  rm(inits)
   #saveRDS(priors.df, "priors.RDS")
   
-  obs$Period <- as_factor(obs$Period)
-  obs$Company <- as_factor(obs$Company)
-  h$Period <- as_factor(h$Period)
-  h$Company <- as_factor(h$Company)
-  params$Period <- as_factor(params$Period)
-  params$Company <- as_factor(params$Company)
+  companies <- sort(unique(obs$Company))
+  
+  obs$Period <- factor(obs$Period, labels = sort(unique(obs$Period)))
+  obs$Company <- factor(obs$Company, labels = companies)
   saveRDS(obs, "observations.RDS")
+  rm(obs)
+  
+  comps <- tibble(Company = as_factor(companies), Country = as_factor(rep(c("CHN", "GER"), each = 10)), Number = rep(1:10, 2))
+  h$Period <- factor(h$Period, labels = sort(unique(h$Period)))
+  h$Company <- factor(h$Company, labels = companies)
+  h <- h %>%
+    gather(key = "Quantile", value = "Value", 5:13, factor_key = F) %>%
+    mutate(Quantile = factor(Quantile, labels = c("1%", "5%", "10%", "25%", "50%", "75%", "90%", "95%", "99%"))) %>%
+    left_join(comps, by = "Company")
   saveRDS(h, "volatility.RDS")
+  rm(h)
+  
+  params$Period <- factor(params$Period, labels = sort(unique(params$Period)))
+  params$Company <- factor(params$Company, labels = companies)
+  params <- params %>%
+    gather(key = "Param", value = "Value", Phi:Mu, factor_key = TRUE) %>%
+    left_join(comps, by = "Company")
   saveRDS(params, "parameters.RDS")
   
   rm(list = ls())
@@ -87,13 +105,6 @@ obs <- readRDS("observations.RDS")
 vol <- readRDS("volatility.RDS")
 pars <- readRDS("parameters.RDS")
 comps <- readRDS("companies.RDS")
-
-vol <- vol %>%
-  gather(key = "Quantile", value = "Value", 5:9, factor_key = TRUE) %>%
-  left_join(comps, by = "Company")
-pars <- pars %>%
-  gather(key = "Param", value = "Value", Phi:Mu, factor_key = TRUE) %>%
-  left_join(comps, by = "Company")
 
 ## Check plots about the volatility
 
