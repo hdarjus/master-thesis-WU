@@ -198,17 +198,113 @@ ggplot(gather(tmp, key = "Colname", value = "Value", a, b, factor_key = T),
   stat_density(aes(fill = ..density..), geom = "raster", position = "identity")
 #####
 
-ggplot(pars %>%
-         filter(Param == "Rho", Period %in% head(levels(Period), 3)) %>%
-         select(Period, Index, Value, Company, Country, Number)) +
+png("rhos.png", width = 800, height = 1390)
+pars %>%
+  filter(Param == "Rho") %>%
+  select(Period, Index, Value, Company, Country, Number) %>%
+  ggplot() +
   stat_density(aes(x = Value, fill = ..density.., y = Number, group = Company), geom = "raster", position = "identity") +
   geom_vline(xintercept = 0, color = "red", show.legend = F) +
   facet_grid(Period ~ Country) +
-  theme_bw() +
+  theme_bw(base_size = 24) +
   theme(strip.text.y = element_text(angle = 0), legend.position = "right",
         axis.text.y = element_blank(), axis.ticks.y = element_blank(),
         panel.spacing = unit(0.1, "lines")) +
   ylab("Company") +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_discrete(expand = c(0, 0)) +
-  guides(col = guide_legend(ncol = 1))
+  guides(col = guide_legend(ncol = 1)) +
+  ggtitle(expression(paste(rho, " posterior distributions")))
+dev.off()
+
+png("negative-rhos.png", width = 800, height = 700)
+pars %>%
+  filter(Param == "Rho", Period %in% levels(Period)[seq(1, 32, by = 2)]) %>%
+  group_by(Company, Period) %>%
+  summarise(Country = first(Country), Is.Significant = quantile(Value, probs = 0.95) < 0) %>%
+  group_by(Country, Period) %>%
+  summarise(Significants = sum(Is.Significant)) %>%
+  select(Country, Period, Significants) %>%
+  ggplot(aes(x = Country, y = Significants)) +
+  geom_col(aes(fill = Country), linetype = "blank") +
+  facet_grid(. ~ Period, switch = "x") +
+  theme_bw(base_size = 20) +
+  theme(strip.text.x = element_text(angle = 90), axis.text.x=element_blank(), axis.ticks.x=element_blank()) +
+  scale_fill_manual("Country", values = c("CHN" = "red", "GER" = "black")) +
+  scale_x_discrete(name = "Period", position = "top") +
+  scale_y_continuous(name = "# of companies", limits = c(0, 10), breaks = 0:10) +
+  ggtitle(expression(paste("Number of companies with significantly negative ", rho)))
+dev.off()
+
+png("positive-rhos.png", width = 800, height = 700)
+pars %>%
+  filter(Param == "Rho", Period %in% levels(Period)[seq(1, 32, by = 2)]) %>%
+  group_by(Company, Period) %>%
+  summarise(Country = first(Country), Is.Significant = quantile(Value, probs = 0.05) > 0) %>%
+  group_by(Country, Period) %>%
+  summarise(Significants = sum(Is.Significant)) %>%
+  select(Country, Period, Significants) %>%
+  ggplot(aes(x = Country, y = Significants)) +
+  geom_col(aes(fill = Country), linetype = "blank") +
+  facet_grid(. ~ Period, switch = "x") +
+  theme_bw(base_size = 20) +
+  theme(strip.text.x = element_text(angle = 90), axis.text.x=element_blank(), axis.ticks.x=element_blank()) +
+  scale_fill_manual("Country", values = c("CHN" = "red", "GER" = "black")) +
+  scale_x_discrete(name = "Period", position = "top") +
+  scale_y_continuous(name = "# of companies", limits = c(0, 10), breaks = 0:10) +
+  ggtitle(expression(paste("Number of companies with significantly positive ", rho)))
+dev.off()
+
+png("rho-timeline.png", width = 800, height = 1450)
+pars %>%
+  filter(Param == "Rho") %>%
+  group_by(Company, Period) %>%
+  summarise("5%" = quantile(Value, probs = 0.05),
+            "50%" = quantile(Value, probs = 0.5),
+            "95%" = quantile(Value, probs = 0.95)) %>%
+  gather(key = "Quantile", value = "Value", "5%", "50%", "95%") %>%
+  ggplot(aes(x = Period, y = Value, group = Quantile)) +
+  geom_hline(yintercept = 0, show.legend = F, color = "red") +
+  stat_summary(aes(color = Quantile), geom = "line", fun.data = "mean_se", show.legend = T) +
+  facet_grid(Company ~ .) +
+  theme_bw(base_size = 20) +
+  theme(strip.text.y = element_text(angle = 0), axis.text.x = element_text(angle = 90), panel.spacing = unit(0.2, "lines")) +
+  scale_color_manual("Quantile", values = c("5%" = "gray60", "50%" = "gray20", "95%" = "gray60")) +
+  scale_x_discrete(labels = ifelse(substr(levels(pars$Period), 7, 7) %in% c("4", "0"), rep("", 32), levels(pars$Period))) +
+  scale_y_continuous(breaks = c(-0.5, 0.5)) +
+  ggtitle(expression(paste("Posterior distributions of ", rho, " per company")))
+dev.off()
+
+png("phi-timeline.png", width = 800, height = 650)
+pars %>%
+  filter(Param == "Phi",
+         Period %in% levels(Period)[c(1, 13, 23, 32)],
+         Company %in% levels(Company)[c(2, 6, 13, 18)]) %>%
+  ggplot(aes(x = Value)) +
+  stat_function(fun = function (x) dbeta((x+1)/2, 20, 1.5), mapping = aes(fill = "Prior"), geom = "area", alpha = 0.65, linetype = "blank") +
+  geom_density(aes(x = Value, y = ..density.., fill = "Posterior"), alpha = 0.65, linetype = "blank") +
+  facet_grid(Company ~ Period, labeller = labeller(.cols = c("2004-01-01/2006-12-31" = "2004-2006", "2007-01-01/2009-12-31" = "2007-2009", "2009-07-01/2012-06-30" = "2010-2012", "2011-10-01/2014-09-30" = "2012-2014"))) +
+  theme_bw(base_size = 20) +
+  theme(strip.text.y = element_text(angle = 0), axis.text.x = element_text(angle = 0), panel.spacing = unit(0.2, "lines")) +
+  scale_fill_manual("", values = c("Prior" = "gray", "Posterior" = "blue")) +
+  scale_x_continuous(breaks = c(0, 0.5, 1)) +
+  ylab("Density") +
+  ggtitle(expression(paste("Posterior distributions of ", phi, " per period and company")))
+dev.off()
+
+
+png("volatility.png", width = 800, height = 750)
+vol %>%
+  filter(Period %in% levels(Period)[c(1, 13, 23, 32)],
+         Company %in% levels(Company)[c(2, 6, 13, 18)]) %>%
+  mutate(Period = fct_relabel(Period, function (x, y) y[x], c("2004-01-01/2006-12-31" = "2004-2006", "2007-01-01/2009-12-31" = "2007-20", "2011-10-01/2014-09-30" = "2011-2014"))) %>%
+  ggplot(aes(y = Value)) +
+  geom_line(aes(x = Date, color = Quantile)) +
+  facet_grid(Company ~ ., labeller = "label_value") +
+  theme_bw(base_size = 20) +
+  theme(strip.text.y = element_text(angle = 0), axis.text.x = element_text(angle = 0), panel.spacing = unit(0.2, "lines")) +
+  scale_color_manual("Quantiles", values = c("1%" = "gray85", "5%" = "gray73", "10%" = "gray60", "25%" = "gray45", "50%" = "gray10", "75%" = "gray45", "90%" = "gray60", "95%" = "gray73", "99%" = "gray85")) +
+  #scale_x_continuous(breaks = c(0, 0.5, 1)) +
+  ylab("Log variance") +
+  ggtitle("Posterior distribution of the log variance per company")
+dev.off()

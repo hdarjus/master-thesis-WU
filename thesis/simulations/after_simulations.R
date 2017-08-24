@@ -158,7 +158,7 @@ dat %>%
   theme(legend.position = "bottom", strip.text.x = element_text(margin = margin(.1, 0, .1, 0, "cm"))) +
   xlab("Time") +
   ylab("Value") +
-  scale_color_manual("Quantiles (%)", values = c("1%" = "gray85", "5%" = "gray73", "10%" = "gray60", "25%" = "gray45", "50%" = "gray10", "75%" = "gray45", "90%" = "gray60", "95%" = "gray73", "99%" = "gray85", "Simulated" = "red")) +
+  scale_color_manual("Quantiles", values = c("1%" = "gray85", "5%" = "gray73", "10%" = "gray60", "25%" = "gray45", "50%" = "gray10", "75%" = "gray45", "90%" = "gray60", "95%" = "gray73", "99%" = "gray85", "Simulated" = "red")) +
   ggtitle("Simulated and posterior variance")
 
 ggplot(dat, aes(x = Time.ind, y = exp(H))) +
