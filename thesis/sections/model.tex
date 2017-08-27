@@ -77,7 +77,7 @@ For an introduction, see, e.g.,~\citet{Geyer2011} or Section~\ref{sec:estimlev}.
 
 In~\citet{Kim1998}, two different Bayesian ideas were compared for SV without leverage based on how the latent variables are sampled.
 A single move (one-at-a-time volatility update) sampler was introduced first that draws $h_t$ from $h_t\mid\bm{h}_{-t},\bm{y},\phi,\sigma^2,\mu$ one by one, where $\bm{h}_{-t}$ is $\bm{h}$ excluding $h_t$.
-Due to the high intercorrelation in $\bm{h}$, slow convergence and poor mixing characterise this approach even though the algorithm used by~\citeauthor{Kim1998} performs better than the other ones in the literature~\citep{shephard1993fitting,jarquier1994bayesian,shephard1994comment,shephard1997likelihood,geweke1994bayesian}.
+Due to the high intercorrelation in $\bm{h}$, slow convergence and poor mixing characterise this approach even though the algorithm used by~\citeauthor{Kim1998} performs better than the other ones in the literature~\citep{shephard1993fitting,jacquier2002bayesian,shephard1994comment,shephard1997likelihood,geweke1994bayesian}.
 
 To avoid the issues with high intercorrelation in $\bm{h}$, a multi-move sampler was used that draws $\bm{h}$ from $\bm{h}\mid\bm{y},\phi,\sigma^2,\mu$ at once.
 By approximating the marginal distribution of $\ets$ with a $K=7$ component mixture of normals,~\citeauthor{Kim1998} managed to reduce the task to the known framework of conditionally Gaussian state spaces\footnote{For an introduction see~\citet{Kitagawa1996}.}.
@@ -124,7 +124,7 @@ These are mitigated by a linear approximation
 \begin{equation}\label{eq:etslinear}
 \exp(\xi_t/2)\approx\exp(m_j/2)(a_j+b_j(\xi_t-m_j))
 \end{equation}
-when the $j$th mixture component is used for $\xi_t$, i.e. $\xi_t\sim\mathcal{N}(m_j,v_j^2)$.
+when the $j$th mixture component is used for $\xi_t$, i.e. $\mathcal{N}(m_j,v_j^2)$.
 The constants $a_j$ and $b_j$ were found by minimising the mean square norm 
 \begin{equation*}
 \E{\left[\exp(\xi_t/2)-\exp(m_j/2)(a+b(\xi_t-m_j))\right]^2}
@@ -290,7 +290,7 @@ After initialising all the latent variables and parameters, there are three main
 Steps~\ref{enum:draw-s} and~\ref{enum:draw-other} are interchangeable in the algorithm but~\ref{enum:draw-theta} and~\ref{enum:draw-latent} are not because the former's by-products are needed for the latter.
 The steps are detailed below based on~\citet{Omori2007}.
 
-If the Markov chain specified by the algorithm above has an equilibrium distribution, then it is an approximate to $\bm h,\bm s,\theta,\mu\mid\bm y$, the posterior distribution of the parameters and latent variables, and it is the true one after the reweighting scheme (Section~\ref{sec:reweight}).
+If the Markov chain specified by the algorithm above has an equilibrium distribution, then it is an approximation to $\bm h,\bm s,\theta,\mu\mid\bm y$, the posterior distribution of the parameters and latent variables, and it is the true one after the reweighting scheme (Section~\ref{sec:reweight}).
 So by repeating the steps sufficiently many times, after ``reaching convergence'' we obtain draws from the posterior.
 With such a sample we can estimate the posterior mean or any other point estimate, calculate credible intervals or transforms of the distribution.
 
@@ -328,7 +328,7 @@ We can use the inverse sampling method to draw $\bm s\mid\bm{y},\bm{h},\mu,\sigm
 \subsubsection{Drawing $\rho,\sigma,\phi$}
 
 The remaining two steps are more involved and based on~\citet{de1995simulation}.
-They are detailed and derived for SV with leverage in~\citet{Nakajima2009}, where SV with leverage is extended and features jumps and t distributed residuals.
+They are detailed and derived for SV with leverage in~\citet{Nakajima2009}, where SV with leverage is extended and it features jumps and t distributed residuals.
 
 In this step, the Metropolis-Hastings (MH) algorithm is used to obtain a draw from $\theta\mid\bm{y}^\ast,\bm{d},\bm s$.
 Three things are needed for MH,
