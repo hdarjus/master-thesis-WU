@@ -198,7 +198,7 @@ ggplot(gather(tmp, key = "Colname", value = "Value", a, b, factor_key = T),
   stat_density(aes(fill = ..density..), geom = "raster", position = "identity")
 #####
 
-png("rhos.png", width = 800, height = 1390)
+pdf("rhos.pdf", width = 8*12/8, height = 13.90*12/8)
 pars %>%
   filter(Param == "Rho") %>%
   select(Period, Index, Value, Company, Country, Number) %>%
@@ -217,7 +217,7 @@ pars %>%
   ggtitle(expression(paste(rho, " posterior distributions")))
 dev.off()
 
-png("negative-rhos.png", width = 800, height = 700)
+pdf("negative-rhos.pdf", width = 8.00*12/8, height = 7.00*12/8)
 pars %>%
   filter(Param == "Rho", Period %in% levels(Period)[seq(1, 32, by = 2)]) %>%
   group_by(Company, Period) %>%
@@ -236,7 +236,7 @@ pars %>%
   ggtitle(expression(paste("Number of companies with significantly negative ", rho)))
 dev.off()
 
-png("positive-rhos.png", width = 800, height = 700)
+pdf("positive-rhos.pdf", width = 8.00*12/8, height = 7.00*12/8)
 pars %>%
   filter(Param == "Rho", Period %in% levels(Period)[seq(1, 32, by = 2)]) %>%
   group_by(Company, Period) %>%
@@ -255,7 +255,7 @@ pars %>%
   ggtitle(expression(paste("Number of companies with significantly positive ", rho)))
 dev.off()
 
-png("rho-timeline.png", width = 800, height = 1450)
+pdf("rho-timeline.pdf", width = 8.00*12/8, height = 14.50*12/8)
 pars %>%
   filter(Param == "Rho") %>%
   group_by(Company, Period) %>%
@@ -275,7 +275,7 @@ pars %>%
   ggtitle(expression(paste("Posterior distributions of ", rho, " per company")))
 dev.off()
 
-png("phi-timeline.png", width = 800, height = 650)
+pdf("phi-timeline.pdf", width = 8.00*12/8, height = 6.50*12/8)
 pars %>%
   filter(Param == "Phi",
          Period %in% levels(Period)[c(1, 13, 23, 32)],
@@ -293,7 +293,7 @@ pars %>%
 dev.off()
 
 
-png("volatility.png", width = 800, height = 750)
+pdf("volatility.pdf", width = 8.00*12/8, height = 7.50*12/8)
 vol %>%
   filter(Period %in% levels(Period)[c(1, 13, 23, 32)],
          Company %in% levels(Company)[c(2, 6, 13, 18)]) %>%

@@ -51,6 +51,7 @@ rownames(params) <- 1:7
 print(xtable(params, caption = "Parameters used for simulation.", label = "tab:params"), booktabs = T, type = "latex")
 
 # Good
+pdf("data-plot.pdf", width = 8, height = 6)
 dat %>%
   filter(Data.ind %in% c(1, 4, 7)) %>%
   mutate(Data.ind = factor(as.character(Data.ind), labels = c("7", "4", "1"))) %>%
@@ -70,9 +71,11 @@ dat %>%
   scale_fill_manual("", values = c("St.dev." = "gray40")) +
   scale_color_manual("", values = c("Price" = "black")) +
   ggtitle("Simulated price process and standard devation")
+dev.off()
 
 # Good
 ## Param density plot
+pdf("rho-densities.pdf", width = 8, height = 6)
 samples %>%
   filter(Param == "Rho") %>%
   group_by(Data.ind) %>%
@@ -91,6 +94,7 @@ samples %>%
   scale_fill_manual("", values = c("Approximate posterior" = "purple", "Prior" = "gray", "Posterior" = "blue")) +
   scale_color_manual("", values = c("Simulated" = "red")) +
   ggtitle(expression(paste(rho, " simulated value and densities")))
+dev.off()
 
 ggplot(samples %>% filter(Data.ind == dataind, Param == "Rho"), aes(x = Value)) +
   geom_density(aes(color = "Posterior")) +
@@ -145,6 +149,7 @@ for (i in seq(1, 7)) {
 
 # Good
 ## Variance
+pdf("variance-plot.pdf", width = 8, height = 12.8)
 dat %>%
   rename(Value = H) %>%
   add_column(Quantile = "Simulated") %>%
@@ -160,6 +165,7 @@ dat %>%
   ylab("Value") +
   scale_color_manual("Quantiles", values = c("1%" = "gray85", "5%" = "gray73", "10%" = "gray60", "25%" = "gray45", "50%" = "gray10", "75%" = "gray45", "90%" = "gray60", "95%" = "gray73", "99%" = "gray85", "Simulated" = "red")) +
   ggtitle("Simulated and posterior variance")
+dev.off()
 
 ggplot(dat, aes(x = Time.ind, y = exp(H))) +
   geom_line() +
