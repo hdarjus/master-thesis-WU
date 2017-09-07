@@ -1,12 +1,12 @@
-\section{Implementation}
+\section{Simulation study}
 
-\citeauthor{Nakajima2009} developed and published a software that was used for their calculations using SV with leverage~\citep{nakajima2009code}.
+\citet{Nakajima2009} developed and published a software that was used for their calculations using SV with leverage~\citep{nakajima2009code}.
 However, that software was written in the proprietary Ox language, which is only freely available with limited features for academic and teaching purposes~\citep{doornik2009object}.
-Apart from investigating the behavior of leverage, this master thesis also partly aimed at providing a freely available solution for fitting SV with leverage.
+Apart from investigating the behaviour of leverage, this master thesis also partly aimed at providing a freely available solution for fitting SV with leverage.
 This section provides details and tests about our implementation, which will be published under the GNU GPLv3 License~\citep{gplv3}.
 In the meantime, the software is available upon request from the author.
 
-\subsection{Framework}
+\subsection{Software framework}
 
 The software is written mainly in R, and some parts are in C++ via the package Rcpp for the sake of efficiency~\citep{rlanguage,rcpp2011,iso2016iec}.
 There are two parts to the software: an R package that provides a function that runs the algorithm detailed in Section~\ref{sec:estimlev}, and a set of individual R scripts that apply that function on data, evaluate results and create plots.
@@ -43,7 +43,7 @@ The chosen prior for $\sigma^2$ has mean 0.05 and standard deviation 0.1, so the
 The latent vector is initialised by $h_1$, and its prior is chosen to be the stationary distribution of the AR(1) process that models $\bm h$.
 Finally, we check a wide range of $\rho$ values, and the prior is intended to be non-informative.
 
-The simulation was based on model~\ref{form:orig_model}.
+The simulation was based on model~\eqref{form:orig_model}.
 All the parameters and $h_1$ need to be initialised, and a realisation of the two white-noise processes has to be generated.
 Finally, by plugging in the model we acquire $\bm h$ and $\bm y$ as well.
 
@@ -61,9 +61,10 @@ For low absolute values the correction outlined in section~\ref{sec:reweight} ha
 Interestingly, the posterior is closer to the simulated value for negative $\rho$, but the ``true'' value is significant in each case.
 
 \begin{figure}
+	\thisfloatpagestyle{empty}
 	\centering
 	\includegraphics[width=\linewidth]{simulations/data-plot.pdf}
-	\caption[Simulated price process and standard deviation]{Simulated price process scaled to 0.03 and its return's standard deviation. The relationship is visible: with high positive correlation (top) the price process and the volatility move together; with no correlation (middle) there is no visible pattern; with high negative correlation (bottom) the price process and the volatility move to the opposite direction.}
+	\caption[Simulated price process and standard deviation]{Simulated price process scaled to 0.03 and its return's standard deviation. With high negative correlation (top) the price process and the volatility move to the opposite direction; with no correlation (middle) there is no visible pattern; with high positive correlation (bottom) the price process and the volatility move together.}
 	\label{fig:simdata}
 \end{figure}
 

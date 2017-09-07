@@ -9,7 +9,7 @@ The model used in this thesis is the Stochastic Volatility with Leverage, which,
 
 \subsection{Formulation}
 
-The SV model with leverage is, in its canonical form, as formulated in~\citet{Omori2007},
+The SV model with leverage is, as formulated in~\citet{Omori2007},
 \begin{equation}
 \begin{alignedat}{2}\label{form:orig_model}
 y_t & = \varepsilon_t\exp\left(h_t/2\right), && \quad t=1,\dots,T, \\
@@ -27,9 +27,10 @@ h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t, && \quad t=1,\dots,T-1, \\
 \end{pmatrix},
 \end{alignedat}
 \end{equation}
-where $T$ is the number of time points, the only observed variable is $y_t$, the demeaned log returns, and it is conditionally normally distributed, given $h_t$.
-The log variance, $\bm{h}$, is the latent vector, and it constitutes an AR(1) process with mean $\mu$, persistence $\phi$ and variance $\sigma^2$.
-Leverage is the fourth parameter, $\rho$, which is the correlation between $\varepsilon_t$ and $\eta_t$, i.e. the increment of the stock price and the increment of the log variance.
+where $T$ is the number of time points, the only observed variables are the demeaned log returns, $y_t$.
+The return at time $t$ is thus conditionally normally distributed, given $h_t$.
+The log variance, $\bm{h}$, is a latent vector, and it constitutes an AR(1) process with mean $\mu$, persistence $\phi$ and variance $\sigma^2$.
+Leverage is the fourth parameter, $\rho$, which is the correlation between $\varepsilon_t$ and $\eta_t$, i.e.\ the increment of the stock price and the increment of the log variance.
 
 The first equation in~\eqref{form:orig_model} is not linear in $h_t$, which makes the model difficult to estimate. For the ease of notation, let
 \begin{align*}
@@ -46,25 +47,27 @@ h_{t+1} & = \mu+\phi(h_t-\mu)+\eta_t,
 \end{align}
 where the error term of the first equation has a $\log(\chi_1^2)$ distribution. The observed variable is $\yts$ and $h_t$ is the latent state.
 
-\subsubsection{Other forms}
+\subsubsection*{Other forms}
 
 The SV model with leverage was formulated differently in~\citet{Jacquier2004}, where $\varepsilon_t$ and $\eta_{t-1}$ are correlated.
-A comparison provided in~\citet{yu2005leverage} revealed that model~\ref{form:orig_model} is more attractive as it is an Euler approximation to the log-normal Ornstein--Uhlenbeck process, hence, the method that fits~\ref{form:orig_model} also fits the corresponding continuous time process with discretely sampled data.
-Moreover, in the alternative specification $y_t$ is not a martingale difference sequence, and $\rho$ has two roles: leverage and the skewness of $y_t\mid y_1,\dots,y_{t-1}$, which makes it more difficult to interpret its value.
-Finally, an empirical comparison showed the model by~\citeauthor{Jacquier2004} to be inferior to~\ref{form:orig_model}.
+A comparison provided in~\citet{yu2005leverage} revealed that model~\eqref{form:orig_model} is more attractive as it is an Euler approximation to the log-normal Ornstein--Uhlenbeck process.
+Hence, the method that fits~\eqref{form:orig_model} also fits the corresponding continuous time process with discretely sampled data.
+Moreover, in the alternative specification, $y_t$ is not a martingale difference sequence, and $\rho$ has two roles: leverage and the skewness of $y_t\mid y_1,\dots,y_{t-1}$, which makes it more difficult to interpret its value.
+Finally, an empirical comparison also showed the model by~\citet{Jacquier2004} to be inferior to~\ref{form:orig_model}.
+For these reasons, we use~\eqref{form:orig_model} in the paper at hand.
 
 \subsection{Estimation without leverage}
 
-SV models are an attractive alternative to GARCH type models, the main difference\footnote{For a more in-depth comparison see, e.g.,~\citet{Harvey1994}.} being that while the volatility of GARCH at $t+1$ is conditionally deterministic, given the information known at $t$, it is random in SV.
-On the one hand, this lets SV fit the data better in some cases~\citep{Kim1998,Chan2016}, on the other hand, it makes its estimation more difficult. In the following parts, the fitting methods for SV without leverage considered in the literature are briefly summarised.
+SV models are an attractive alternative to GARCH type models, the main difference\footnote{For a more in-depth comparison see~\citet{Harvey1994}.} being that while the volatility of GARCH at $t+1$ is conditionally deterministic, given the information known at $t$, it is random in SV.
+On the one hand, this lets SV fit the data better in some cases~\citep{Kim1998,kastner2016dealing,Chan2016}, on the other hand, it makes its estimation more difficult. In the following parts, the fitting methods for SV without leverage considered in the literature are briefly summarised.
 
 \subsubsection{Maximum likelihood estimation}
 
 Let $\bm{y}=(y_1,\dots,y_n)$.
-In order to obtain a ML estimate for $(\phi,\sigma^2,\rho,\mu)$, we need to evaluate the likelihood function $\ell(\phi,\sigma^2,\rho,\mu\mid\bm{y})$, for which we need to integrate over the space of vector $\bm{h}$.
+In order to obtain an ML estimate for $(\phi,\sigma^2,\rho,\mu)$, we need to evaluate the likelihood function $\ell(\phi,\sigma^2,\rho,\mu\mid\bm{y})$, for which we need to integrate over the space of vector $\bm{h}$.
 This is unfortunately difficult due to the non-linear dependence between $y_t$ and $h_t$, or, in the linear form, due to the non-Gaussian error term $\ets$.
 
-The issue of non-normality was resolved in~\citet{Harvey1994} using a Gaussian approximation to $\ets$, i.e. by matching the first two moments of the $\log(\chi_1^2)$ distribution.
+The issue of non-normality was resolved in~\citet{Harvey1994} using a Gaussian approximation to $\ets$, i.e.\ by matching the first two moments of the $\log(\chi_1^2)$ distribution.
 Then, in the resulting approximate model, using a Kalman filter to integrate over $\bm{h}$, a quasi-likelihood function can be calculated, and, after maximisation, a quasi-maximum likelihood estimate can be obtained.
 This estimator is consistent and asymptotically normally distributed, but it has bad performance in small samples because the $\ets$ is poorly approximated by the normal distribution~\citep{Kim1998}.
 
@@ -73,29 +76,28 @@ This estimator is consistent and asymptotically normally distributed, but it has
 The lack of a closed form likelihood function also means that there are no closed form posteriors for the model.
 This suggests the usage of Markov chain Monte Carlo algorithms (MCMC), which, with the help of Markov chains and Bayes' theorem, make it possible to draw samples from the posterior distribution of the latent variables and the parameters.
 With enough such samples we get a picture of these distributions.
-For an introduction, see, e.g.,~\citet{Geyer2011} or Section~\ref{sec:estimlev}.
+For an introduction, see, e.g.,~\citet{Geyer2011} or Section~\ref{sec:estimlev} of the paper at hand.
 
 In~\citet{Kim1998}, two different Bayesian ideas were compared for SV without leverage based on how the latent variables are sampled.
-A single move (one-at-a-time volatility update) sampler was introduced first that draws $h_t$ from $h_t\mid\bm{h}_{-t},\bm{y},\phi,\sigma^2,\mu$ one by one, where $\bm{h}_{-t}$ is $\bm{h}$ excluding $h_t$.
-Due to the high intercorrelation in $\bm{h}$, slow convergence and poor mixing characterise this approach even though the algorithm used by~\citeauthor{Kim1998} performs better than the other ones in the literature~\citep{shephard1993fitting,jacquier2002bayesian,shephard1994comment,shephard1997likelihood,geweke1994bayesian}.
+A single move (one-at-a-time volatility update) sampler was introduced first. It draws $h_t$ from $h_t\mid\bm{h}_{-t},\bm{y},\phi,\sigma^2,\mu$ one by one, where $\bm{h}_{-t}$ is $\bm{h}$ excluding $h_t$.
+Due to the high intercorrelation in $\bm{h}$, slow convergence and poor mixing characterise this approach even though the algorithm used by~\citet{Kim1998} performs better than the other ones in the literature~\citep{shephard1993fitting,jacquier2002bayesian,shephard1994comment,shephard1997likelihood,geweke1994bayesian}.
 
 To avoid the issues with high intercorrelation in $\bm{h}$, a multi-move sampler was used that draws $\bm{h}$ from $\bm{h}\mid\bm{y},\phi,\sigma^2,\mu$ at once.
-By approximating the marginal distribution of $\ets$ with a $K=7$ component mixture of normals,~\citeauthor{Kim1998} managed to reduce the task to the known framework of conditionally Gaussian state spaces\footnote{For an introduction see~\citet{Kitagawa1996}.}.
+By approximating the marginal distribution of $\ets$ with a $K=7$ component mixture of normals,~\citet{Kim1998} managed to reduce the task to the known framework of conditionally Gaussian state spaces\footnote{For an introduction see~\citet{Kitagawa1996}.}.
 Since the marginal of $\ets$ does not include any model-dependent values, this mixture of normals can be specified before fitting the model.
 The approximation errors to the original SV model can be corrected for by a reweighting scheme.
-However, this correction did not change the results significantly due to the good choice of the mixture approximation.
-
-\comment{Matching parameters with papers' models can go to an appendix???}
+However, this correction is known to have minor influence due to the good choice of the mixture approximation~\citep{Kim1998}.
 
 \subsection{Approximate model}
 
 Both the single move and the multi-move samplers were generalised to SV with leverage in~\citet{Omori2007}, and a particle filtering\footnote{For an introduction see~\citet{Johannes2009}.} method was also derived.
-In this work, we favor MCMC methods over sequential Monte Carlo (particle filtering) due to the availability of computers with strong processors (wu cloud ???), and, due to its better sampling efficiency, the multi-move sampler was chosen over the single move sampler for fitting the model.
+In this work, we favor MCMC methods over sequential Monte Carlo (particle filtering) due to the availability of computers with a multitude of strong processors.
+Finally, due to its better sampling efficiency, the multi-move sampler was chosen over the single move sampler for fitting the model.
 
 \subsubsection{Bivariate normal approximation}
 
 Due to the correlation between $\varepsilon_t$ and $\eta_t$, approximating $\ets$ affects $\eta_t$ as well.
-Thus,~\citeauthor{Omori2007} used a mixture of bivariate normals as an approximation to the conditional distribution of the pair $(\ets, \eta_t)$.
+Thus,~\citet{Omori2007} used a mixture of bivariate normals as an approximation to the conditional distribution of the pair $(\ets, \eta_t)$.
 Let $(\xi_t,\nu_t\mid d_t,\rho,\sigma)$ denote the approximate random variable to $(\ets,\eta_t\mid d_t,\rho,\sigma)$, and let $\pi(X)$ denote the density of the random variable $X$ and $\pi(X=x)$ denote its value at $x$.
 
 In order to derive the approximation, we first decompose the bivariate conditional density and then approximate the parts separately,
@@ -104,7 +106,7 @@ In order to derive the approximation, we first decompose the bivariate condition
 &= \pi(\ets)\cdot \pi(\eta_t\mid\ets,d_t,\rho,\sigma)\label{eq:decomp},
 \end{align}
 because the marginal of $\ets$ is independent of $d_t$, $\rho$, and $\sigma$.
-\citeauthor{Omori2007} now used an improved normal mixture approximation to the marginal $\pi(\ets)$ with $K=10$,
+\citet{Omori2007} now used an improved normal mixture approximation to the marginal $\pi(\ets)$ with $K=10$,
 \begin{equation}\label{eq:ets}
 \pi(\xi_t)\triangleq\sum_{j=1}^{10}p_j\pi\left(\mathcal{N}\left(m_j,v_j^2\right)\right),
 \end{equation}
@@ -124,7 +126,7 @@ These are mitigated by a linear approximation
 \begin{equation}\label{eq:etslinear}
 \exp(\xi_t/2)\approx\exp(m_j/2)(a_j+b_j(\xi_t-m_j))
 \end{equation}
-when the $j$th mixture component is used for $\xi_t$, i.e. $\mathcal{N}(m_j,v_j^2)$.
+when the $j$th mixture component is used for $\xi_t$, i.e.\ $\mathcal{N}(m_j,v_j^2)$.
 The constants $a_j$ and $b_j$ were found by minimising the mean square norm 
 \begin{equation*}
 \E{\left[\exp(\xi_t/2)-\exp(m_j/2)(a+b(\xi_t-m_j))\right]^2}
@@ -177,7 +179,7 @@ Finally, we normalise the weights
 w_k=\frac{w_k^\ast}{\sum_{l=1}^{T}w_l^\ast}
 \end{equation*}
 to get the probabilities that we use for resampling the existing draws.
-\citeauthor{Omori2007} found that the weights have quite small variance which makes the effect of this correction procedure modest.
+\citet{Omori2007} found that the weights have quite small variance which makes the effect of this correction procedure modest.
 That is in line with the demonstrated high precision of the approximate bivariate distribution.
 
 \subsubsection[State space form]{Conditional Gaussian state space form}
@@ -235,7 +237,7 @@ y_T^\ast &= h_T+\xi_T.
 \end{alignedat}
 \end{equation}
 Since $(\xi_t,\nu_t,0)$ is a (degenerate) normal white-noise series, setting $\mu\equiv\tilde{\mu}_t$ and assuming a normal prior for $\mu$ and $h_1\mid(\mu,\sigma,\phi)$, model~\eqref{form:gauss_model} is a linear Gaussian state space (GSS) with hidden state $(h_t,\tilde{\mu}_t)$.
-We copy the priors of the initial latent state used by~\citeauthor{Omori2007}, for arbitrary constant $\sigma_0$,
+We copy the priors of the initial latent state used by~\citet{Omori2007}, for arbitrary constant $\sigma_0$,
 \begin{equation*}
 \begin{pmatrix}
 h_1 \\
@@ -252,7 +254,7 @@ h_1 \\
 \end{pmatrix}
 \right).
 \end{equation*}
-Note that in~\eqref{form:gauss_model} $\tilde{\mu}_t$ is constant through $t$. \citeauthor{Omori2007} needed this ``trick'' with the inclusion of $\mu$ in the hidden state in order to match the general form of models that can be fitted via the method in~\citet{de1995simulation}.
+Note that in~\eqref{form:gauss_model} $\tilde{\mu}_t$ is constant through $t$. \citet{Omori2007} needed this ``trick'' with the inclusion of $\mu$ in the hidden state in order to match the general form of models that can be fitted via the method in~\citet{de1995simulation}.
 
 \subsection{Estimation with leverage}\label{sec:estimlev}
 
@@ -352,9 +354,9 @@ Given everything above, a MH step in the $n$th loop
 	Otherwise $\theta_{n+1}=\theta_n$ is the new state again.
 \end{enumerate}
 
-\citeauthor{Nakajima2009} chose the proposal to be $\mathcal{N}(c, C)$ truncated to the region $R=\left\{(\sigma,\rho,\phi)\mid\sigma>0,-1<\rho<1,-1<\phi<1\right\}$.
+\citet{Nakajima2009} chose the proposal to be $\mathcal{N}(c, C)$ truncated to the region $R=\left\{(\sigma,\rho,\phi)\mid\sigma>0,-1<\rho<1,-1<\phi<1\right\}$.
 The mean vector $c$ and the covariance matrix $C$ are calculated in each loop in a way that the proposal's log density is the second order Taylor expansion of the true log density around the true log density's mode.\footnote{
-	Even though we can only evaluate the true posterior density up to a (positive) constant factor, this works here because the mode is the same, and we differentiate the log density for the Taylor expansion, i.e. constant multipliers vanish.}
+	Even though we can only evaluate the true posterior density up to a (positive) constant factor, this works here because the mode is the same, and we differentiate the log density for the Taylor expansion, i.e.\ constant multipliers vanish.}
 More precisely,
 \begin{align*}
 c &= \hat{\theta}+Cv, \\

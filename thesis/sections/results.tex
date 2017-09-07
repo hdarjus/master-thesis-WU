@@ -10,9 +10,9 @@ Figure~\ref{fig:rhos} summarises all the results by plotting all the posterior d
 Even though not all companies behave the same way, there is a consistent picture in general about the differences between the two countries.
 The chart shows that, based on the chosen sample, $\rho$ is really estimated to be larger in China than in Germany, except for the periods containing the crisis, when it was similar.
 
-The claims about China behaving differently are strengthened by figure~\ref{fig:negative-rhos}, which shows the number of companies with a significant leverage or anti-leverage effect.
+The claims about China behaving differently are strengthened by Figure~\ref{fig:negative-rhos}, which shows the number of companies with a significant leverage or anti-leverage effect.
 Interestingly, Germany had the least number of companies with significant leverage effect in the period that just preceded the crisis, which was followed by a steep increase in that number.
-Apart from the periods containing the boom phase of the 2007 crisis or touching the European debt crisis, the figure for Germany is quite stable around 6-7.
+Apart from the periods containing the boom phase of the 2007 crisis or touching the European debt crisis, the Figure for Germany is quite stable around 6-7.
 None of the German stocks had a significantly positive $\rho$.
 
 The picture is much less consistent in China.
@@ -25,25 +25,25 @@ On the other hand, comparison with correlation values obtained from other models
 
 \subsection{Time dependence of leverage}
 
-When time-variability is the question, comparison of $\rho$ estimates using the same model for different datasets can be helpful, and figures~\ref{fig:rhos} and~\ref{fig:negative-rhos} suggest that leverage is not constant, not even its sign.
+When time-variability is the question, comparison of $\rho$ estimates using the same model for different datasets can be helpful, and Figures~\ref{fig:rhos} and~\ref{fig:negative-rhos} suggest that leverage is not constant, not even its sign.
 The charts show that correlation shifts to the negative direction in the crisis, which claim is consistent with recent literature~\citep{Christensen2015}.
 It seems to hold especially for the Chinese stocks since the German companies are more stably on the negative side throughout the whole time.
 
 Figure~\ref{fig:company-rhos} presents more details by showing how the posterior distribution changed with the rolling window of periods.
 Indeed, the bottom half of the chart, the German companies are in general below zero since the crisis, showing a quite consistent picture.
-BMW and SAP show a steadily strengthening leverage effect, the others either stagnate or show signs of end of the crisis, if we accept the hypothesis from~\citeauthor{Christensen2015}, since the leverage effect is weakening in their case.
+BMW and SAP show a steadily strengthening leverage effect, the others either stagnate or show signs of end of the crisis, if we accept the hypothesis from~\citet{Christensen2015}, since the leverage effect is weakening in their case.
 
 Each of the Chinese companies' show far more hectic time-dependence, but all had the negative extremum of the posteriors in a period containing the first half of 2008, at the strongest impact of the crisis.
-However, in my view, the overall picture, being so unstable throughout the whole examined time, questions the reliability of the results from the perspective of~\citeauthor{Christensen2015}.
+However, in my view, the overall picture, being so unstable throughout the whole examined time, questions the reliability of the results from the perspective of~\citet{Christensen2015}.
 There might be far more and a lot different factors in play that affect Chinese stocks' leverage effect.
 
 \subsection{Volatility estimations}
 
-The posterior of $\phi$ and of the log variance are presented in figure~\ref{fig:persistence} on a chosen subset of periods and companies that represent the whole dataset.
+The posterior of $\phi$ and of the log variance are presented in Figure~\ref{fig:persistence} on a chosen subset of periods and companies that represent the whole dataset.
 The prior of $\phi$ is taken to be informative, it reflects the empirical fact of highly autocorrelating volatility, which is supposed to improve on convergence of the MCMC method.
 The posterior of $\phi$ mainly depends on its prior and the estimate for $\bm h$, hence if the posterior is significantly different from the prior, that means that there is valuable information in $\bm h$ about $\phi$.
 
-An immediately noticeable phenomenon on figure~\ref{fig:persistence} is that the posterior of $\phi$ varies more for the German firms, or more precisely, throughout the crisis and in its short aftermath the volatility of the German stocks was much more persistent than in the other periods.
+An immediately noticeable phenomenon on Figure~\ref{fig:persistence} is that the posterior of $\phi$ varies more for the German firms, or more precisely, throughout the crisis and in its short aftermath the volatility of the German stocks was much more persistent than in the other periods.
 At the same time, changes in the persistence of the Chinese companies can not be explained by the crisis periods, and the estimates are more stable and closer to the prior, except for the highly persistent 2010-2012 period of 600016 CH Equity.
 One can also spot the differences on the log variance timeline: the time series are close to a constant value plus noise in China, containing little information about persistence, contrary to Germany, where clusters of increasing and decreasing trends can be observed around the crisis.
 
@@ -55,7 +55,6 @@ One can also spot the differences on the log variance timeline: the time series 
 	\label{fig:rhos}
 \end{figure}
 
-
 \begin{figure}[p]
 	\vspace*{-3.2cm}
 	\centering
@@ -65,7 +64,6 @@ One can also spot the differences on the log variance timeline: the time series 
 	\label{fig:negative-rhos}
 \end{figure}
 
-
 \begin{figure}[p]
 	\vspace*{-3.2cm}
 	\centering
@@ -73,7 +71,6 @@ One can also spot the differences on the log variance timeline: the time series 
 	\caption[Timeline of posterior $\rho$]{Posterior distributions of $\rho$ in time. The prior distribution is the standard uniform in all cases.}
 	\label{fig:company-rhos}
 \end{figure}
-
 
 \begin{figure}[p]
 	\vspace*{-3.2cm}

@@ -17,6 +17,9 @@
 \usepackage[round]{natbib}
 \usepackage{multirow}
 \usepackage{makecell}
+\usepackage{textcomp}
+\usepackage{floatpag}
+\floatpagestyle{empty}
 
 \renewcommand\theadfont{\normalsize}
 \newcommand{\comment}[1]{}
@@ -41,6 +44,8 @@
 \includeonly{sections/introduction,sections/leverage,sections/model,sections/implementation,sections/computations,sections/results,sections/conclusion}
 %\includeonly{sections/02_model}
 
+\let\$\textdollaroldstyle
+
 \begin{document}
 	\includepdf[pages={1}]{scan-of-declaration-of-authorship.pdf}
 	\pagebreak
@@ -59,7 +64,7 @@
 	\vspace{1cm}
 	
 	%% WRITE THE TITLE OF YOUR WORK
-	{\noindent\huge\textbf{The Leverage Effect}}
+	{\noindent\huge\textbf{Bayesian Estimation of the \\Stochastic Volatility model with \\leverage: \\The case of Germany and China}}
 	
 	\bigskip
 	
@@ -72,7 +77,9 @@
 	{\noindent\small Student ID: 1551490}
 	
 	\bigskip
-	{\vspace{2cm}}
+	\bigskip
+	\bigskip
+	%{\vspace{2cm}}
 	{\noindent\large {\bf Subject Area}\\Leverage effect, Bayesian inference}
 	
 	%% WRITE YOUR Studienkennzahl
@@ -91,7 +98,7 @@
 	%% WRITE THE DATAE OF SUBMISSION
 	{\noindent\large {\bf Date of Submission}\\September 9, 2017}
 	
-	\bigskip\bigskip\bigskip\bigskip\bigskip
+	\bigskip\bigskip\bigskip
 	
 	{\em\noindent Department of Finance, Accounting and Statistics\\
 		Vienna University of Economics and Business\\
@@ -101,7 +108,7 @@
 	}
 	
 	
-	\pagestyle{empty}
+	%\pagestyle{empty}
 	\pagebreak
 	\tableofcontents
 	\pagebreak
@@ -112,14 +119,13 @@
 	
 	\begin{abstract}
 		The Chinese financial market is known to be different from the comparably weakly regulated Western markets in many ways.
-    One of the symptoms is the unintuitive behaviour observed on Chinese common stocks: their returns and changes in volatility are not negatively correlated.
-    The widely accepted phenomenon, called the leverage effect after corporates' leverage ratio, has a history going back even to the 1970s when Black noted that a negative return-variance correlation is implied by the assumptions in the popular framework of Modigliani and Miller.
+    One of the symptoms is the unexpected behaviour observed in Chinese common stocks: their returns and changes in their volatility are not negatively correlated.
+    It contrasts an intuitive phenomenon called the leverage effect, which has a history going back even to the 1970s, and it is implied by the assumptions in the popular framework of Modigliani and Miller.
     The leverage effect's importance is reflected by the number of time series models that have been developed for its estimation.
-    Although most of them are ARCH-type featuring conditionally deterministic variance, there exists a promising alternative that has not been tried on Chinese stock dataset yet, having better in-sample-fit than its corresponding, similarly sophisticated GARCH models.
-    The Stochastic Volatility (SV) model with leverage is used in this master thesis for the comparison of the leverage effect observed in Chinese and Western markets.
-    Germany, being the leading economy of the Eurozone, is chosen to represent the latter.
-    After fitting the SV model to companies of the SSE Index and the DAX Index for several periods in a rolling window fashion, we find that this model confirms only partly the latest results in the literature, namely, the Chinese anti-leverage effect.
-    Instead, our results show the lack of consistent leverage or anti-leverage effect altogether.
+    Although most of them are ARCH-type models, we use a promising alternative called the Stochastic Volatility (SV) model with leverage, that has not been applied to Chinese stock datasets yet, and it has better in-sample-fit than its corresponding, similarly sophisticated GARCH models.
+    SV is used in this master thesis for the comparison of the leverage effect observed in Chinese and Western markets.
+    As the leading economy of the Eurozone, Germany is chosen to represent the latter.
+    Our results show the lack of consistent leverage or anti-leverage effect in China altogether, while they confirm the existence of the leverage effect in Germany.
     As a by-product, we find evidence for the stocks having stronger leverage effect through the crisis of 2007.
 	\end{abstract}
 	

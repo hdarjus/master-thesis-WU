@@ -1,52 +1,44 @@
-\section{Related work}
+\subsection{Related work}
 
 Variance of stock returns plays an important role in many fields of finance.
 For example, it is crucial in capital asset pricing, portfolio management, and contingent claim pricing~\citep{hull1987pricing,skiadas2009asset,chow2014study}.
-\citeauthor{Christie1982} wrote in 1982 that even though volatility was pivotal in these topics, little work was being done for understanding its properties.
+\citet{Christie1982} wrote in 1982 that even though volatility was pivotal in these topics, little work was being done for understanding its properties.
+
+\subsubsection*{GARCH models}
 
 This has changed since 1982.
 That year~\citet{Engle1982} introduced the Autoregressive Conditional Heteroskestacity (ARCH) model that assumes non-constant variance conditional on past errors.
-The ARCH model was later extended in several different ways\footnote{For a more extensive overview, see~\citet{bollerslev1994arch}.}: generalised ARCH (GARCH) models volatility as an Autoregressive Moving Average process, integrated GARCH was designed for non-stationary volatility processes, and continuous GARCH for continuous time modelling, to mention some of the popular ones~\citep{Bollerslev1986,engle1986modelling,box1994time,kluppelberg2004continuous}.
+The ARCH model was later extended in several different ways\footnote{For a more extensive overview, see~\citet{bollerslev1994arch}.}: generalised ARCH (GARCH) models variance with higher flexibility, integrated GARCH was designed for non-stationary volatility processes, and continuous GARCH for continuous time modelling, to mention some of the popular ones~\citep{Bollerslev1986,engle1986modelling,box1994time,kluppelberg2004continuous}.
 
 \citet{Nelson1991} introduced the first variant featuring asymmetric volatility, the exponential GARCH.
 It models the logarithm of the variance by a suitable function of past shocks.
 Since then, quite a few versions have been developed targeting asymmetric volatility including Family GARCH, which is an omnibus nesting a variety of the earlier ones~\citep{engle1993measuring,glosten1993relation,zakoian1994threshold,sentana1995quadratic,hentschel1995all}.
+
+\subsubsection*{Stochastic Volatility models}
 
 Still in 1982, the Stochastic Volatility (SV) model was presented in~\citet{Taylor1982}, which has an unconditionally random variance process.
 Later, \citet{Harvey1996} and \citet{Jacquier2004} proposed two different formulations for the asymmetric SV model, both containing a correlation parameter that estimates the leverage effect, but they correlate different terms.
 ~\citet{yu2005leverage} compared the two setups and concluded that the earlier one is appealing both in theory and in practice.
 
 The SV model is a promising alternative to GARCH-type models, in the literature SV's in-sample-fit is at least as good as a GARCH model with heavy-tailed errors.
-SV's main drawback is its parameter estimation methods, they are usually more involved than existing approaches for GARCH.
+SV's main drawback is the lack of easily accessible and comprehensible estimation methods, compared to the less involved approaches for GARCH.
 Therefore, a lot of effort has been put into the development of efficient algorithms giving good fit for SV~\citep{Kim1998,jacquier2002bayesian,Omori2007,Kastner2014,Chan2016}.
+
+\subsubsection*{The leverage effect}
 
 Even before~\citet{black1976studies} first described the leverage effect, the original~\citet{black1973pricing} paper already discussed the impact of changing LR on stock price behaviour.
 Their reasoning was based on the popular structural model in corporate finance from~\citet{modigliani1958cost}.
 A short calculation based on Chapter 14 of~\citet{berk2007corporate} demonstrates the phenomenon.
 \begin{description}
-	\item[Example 2.1. Leverage effect in Modiglinani--Miller.]~
+	\item[Example 1.1. Leverage effect in Modiglinani--Miller.]~
 	
 	The Modigliani--Miller (MM) world is defined by the Modigliani--Miller theorem stating that if there are no taxes, bankruptcy or agency costs, and every agent has the same information, then in an efficient market the capital structure of the firm does not affect its value~\citep{modigliani1958cost}.
 	The firm's capital structure is the amount of debt and equity.
 	
 	By definition, $\text{Leverage ratio}=\frac{\text{Market equity}}{\text{Debt}}$. In our example there is one firm in two consecutive years with the same debt but an increased LR, and one type of investment project both years that has two outcomes depending on the strength of the economy that year.
 	Debt is risk-free and so has the same return (5\%) in both states.
-	The project has a net value of \$-100 or \$300 in the weak and the strong economies, respectively.
+	The project has a net value of \$$-100$ or \$$300$ in the weak and the strong economies, respectively.
 	Income that does not go to debt holders goes to equity holders.
-	\begin{table}[]
-		\fontsize{9}{12}\selectfont
-		\centering
-		\begin{tabular}{lcccccc}
-			\multirow{2}{*}{} & \textbf{Date 0} & \multicolumn{2}{c}{\textbf{Date 1: Cash Flows}} & \multicolumn{2}{c}{\textbf{Date 1: Returns}} & \\
-			& \begin{tabular}[c]{@{}c@{}}Initial\\ Value\end{tabular} & \begin{tabular}[c]{@{}c@{}}Strong\\ Economy\end{tabular} & \begin{tabular}[c]{@{}c@{}}Weak\\ Economy\end{tabular} & \begin{tabular}[c]{@{}c@{}}Strong\\ Economy\end{tabular} & \begin{tabular}[c]{@{}c@{}}Weak\\ Economy\end{tabular} & \begin{tabular}[c]{@{}c@{}}Return\\ Sensitivity\end{tabular} \\ \hline
-			\multicolumn{1}{l|}{Debt} & \multicolumn{1}{c|}{\$500} & \$525 & \$525 & 5\% & \multicolumn{1}{c|}{5\%} & 0\% \\ \hline
-			\multicolumn{1}{l|}{Equity in 1999} & \multicolumn{1}{c|}{\$500} & \$775 & \$375 & 55\% & \multicolumn{1}{c|}{-25\%} & 80\% \\ \hline
-			\multicolumn{1}{l|}{Equity in 2000} & \multicolumn{1}{c|}{\$1000} & \$1275 & \$875 & 27.5\% & \multicolumn{1}{c|}{-12.5\%} & 40\%
-		\end{tabular}
-		\caption{Calculations for Example 2.1.}
-		\label{tab:modigl}
-	\end{table}
-	\normalsize
 	
 	Table~\ref{tab:modigl} contains the details of the calculation. Return sensitivity is a proxy for measuring volatility here, it is actually the range of the returns.
 	
@@ -54,26 +46,41 @@ A short calculation based on Chapter 14 of~\citet{berk2007corporate} demonstrate
 	A similar calculation about the other direction would also work, moreover, this conclusion holds in general in MM and even more general setups~\citep{Christie1982}.
 \end{description}
 
-The first statistical tests about the leverage effect were probably done in~\citet{Christie1982}, where the price $S$ is modelled as a diffusion process, and the instantaneous volatility contains the term $S^\theta$.
-So a negative $\theta$ means that if $S$ is decreasing then the volatility is increasing.
+\begin{table}[]
+	\fontsize{9}{12}\selectfont
+	\centering
+	\begin{tabular}{lcccccc}
+		\multirow{2}{*}{} & \textbf{Date 0} & \multicolumn{2}{c}{\textbf{Date 1: Cash Flows}} & \multicolumn{2}{c}{\textbf{Date 1: Returns}} & \\
+		& \begin{tabular}[c]{@{}c@{}}Initial\\ Value\end{tabular} & \begin{tabular}[c]{@{}c@{}}Strong\\ Economy\end{tabular} & \begin{tabular}[c]{@{}c@{}}Weak\\ Economy\end{tabular} & \begin{tabular}[c]{@{}c@{}}Strong\\ Economy\end{tabular} & \begin{tabular}[c]{@{}c@{}}Weak\\ Economy\end{tabular} & \begin{tabular}[c]{@{}c@{}}Return\\ Sensitivity\end{tabular} \\ \hline
+		\multicolumn{1}{l|}{Debt} & \multicolumn{1}{c|}{\$500} & \$525 & \$525 & 5\% & \multicolumn{1}{c|}{5\%} & 0\% \\ \hline
+		\multicolumn{1}{l|}{Equity in 1999} & \multicolumn{1}{c|}{\$500} & \$775 & \$375 & 55\% & \multicolumn{1}{c|}{-25\%} & 80\% \\ \hline
+		\multicolumn{1}{l|}{Equity in 2000} & \multicolumn{1}{c|}{\$1000} & \$1275 & \$875 & 27.5\% & \multicolumn{1}{c|}{-12.5\%} & 40\%
+	\end{tabular}
+	\caption{Calculations for Example 1.1.}
+	\label{tab:modigl}
+\end{table}
+\normalsize
+
+The first statistical tests about the leverage effect were probably done in~\citet{Christie1982}.
+There, the price $S$ is modelled as a diffusion process, and the instantaneous volatility is $\lambda S^\theta$, with $\lambda>0$ and $\theta$ being model parameters.
+A negative $\theta$ means that if $S$ is decreasing then the volatility is increasing, which is the leverage effect.
 Evidence was found for the existence of the leverage effect, and also for its strong relationship with LR, on a dataset of 379 firms.
 
 However, a universally accepted explanation still does not exist.
 The relationship with LR, and thus the LR hypothesis as well, was questioned by~\citet{figlewski2000leverage}.
 They fitted a linear regression model on the changes in volatility against the changes in LR, and they found inconsistencies on different LR levels.
 
-There have been promising steps in the topic, e.g.~\citet{dennis2006stock} showed that the return-volatility relation is not a firm phenomenon but a market one.
+Different explanations have also been considered. \citet{dennis2006stock} showed that the return-volatility relation is not a firm phenomenon but a market one.
 That inspired \citet{Hibbert2008}, who then proposed a trader-behavioural explanation.
 Their lagged linear models, based on VIX, intraday returns and realised volatility estimations, showed problems with the LR hypothesis and resulted in consistence with their behavioural model.
+\citet{bollerslev2011volatility} aims at matching the variance's autocorrelation structure using their equilibrium-based, continuous time model, and at the same time they predict the leverage effect as well.
 
-The highly stylised, equilibrium-based, continuous time volatility model proposed in~\citet{bollerslev2011volatility} aims at matching the variance's autocorrelation structure, and at the same time predicts the leverage effect.
-\citet{Christensen2015} were probably the first ones to check the time-dependence of the leverage effect.
-Using a GARCH-type model, they found that the leverage effect is much stronger throughout crises in the S\&P500 index.
+Recent empirical studies have shown interesting properties of the leverage effect.
+Based on intraday data and the retarded volatility model~\citep{Bouchaud2001}, positive return-variance correlation was found in Chinese indices by~\citet{Shen2009}, contradicting experience from other parts of the world.
+Later, \citet{Christensen2015} were probably the first ones to check the time-dependence of the leverage effect.
+Using a GARCH-type model, they found that the effect is significantly stronger throughout crises in the S\&P500 index.
 
-Based on intraday data and the retarded volatility model~\citep{Bouchaud2001}, positive return-variance correlation was found in the Chinese market by~\citet{Shen2009}, contradicting experience from other parts of the world.
-That phenomenon can possibly lead to an explanation of the leverage effect if the differences between the Chinese and Western markets are carefully examined.
-For example, \citet{GORDON2003} discusses why Chinese regulations are so much different than in other countries.
-
-If one accepts the original explanation for the roots of leverage effect, the LR hypothesis, then results based on stock indices are not easily interpretable, while results on common stocks are also interpretable in the market-based leverage effect hypotheses.
-Thus, in this master thesis, we will use stock price data from the two countries.
-Based on the comparison of GARCH and SV models above, since efficient algorithms are already available, the latter is preferred due to the better in-sample-fit.
+We do not know the roots of the leverage effect.
+Since I do not want to filter out any of the possibilities, I will base my research in this master thesis on stock prices and not on indices.
+The reason is that the LR hypothesis is only interpretable for single firms and their stocks, and the market-based and behavioural hypotheses are interpretable for both stocks and indices.
+Finally, based on the comparison of GARCH and SV models above, since efficient algorithms are already available, the latter is preferred due to the better in-sample-fit.
