@@ -6,8 +6,7 @@ For example, it is crucial in capital asset pricing, portfolio management, and c
 
 \subsubsection*{GARCH models}
 
-This has changed since 1982.
-That year~\citet{Engle1982} introduced the Autoregressive Conditional Heteroskestacity (ARCH) model that assumes non-constant variance conditional on past errors.
+Then, already in 1982,~\citet{Engle1982} introduced the Autoregressive Conditional Heteroskestacity (ARCH) model that assumes non-constant variance conditional on past errors.
 The ARCH model was later extended in several different ways\footnote{For a more extensive overview, see~\citet{bollerslev1994arch}.}: generalised ARCH (GARCH) models variance with higher flexibility, integrated GARCH was designed for non-stationary volatility processes, and continuous GARCH for continuous time modelling, to mention some of the popular ones~\citep{Bollerslev1986,engle1986modelling,box1994time,kluppelberg2004continuous}.
 
 \citet{Nelson1991} introduced the first variant featuring asymmetric volatility, the exponential GARCH.
@@ -32,10 +31,10 @@ A short calculation based on Chapter 14 of~\citet{berk2007corporate} demonstrate
 \begin{description}
 	\item[Example 1.1. Leverage effect in Modiglinani--Miller.]~
 	
-	The Modigliani--Miller (MM) world is defined by the Modigliani--Miller theorem stating that if there are no taxes, bankruptcy or agency costs, and every agent has the same information, then in an efficient market the capital structure of the firm does not affect its value~\citep{modigliani1958cost}.
+	The Modigliani--Miller (MM) world is defined by the Modigliani--Miller theorem stating that if there are no taxes, bankruptcy, or agency costs, and every agent has the same information, then in an efficient market the capital structure of the firm does not affect its value~\citep{modigliani1958cost}.
 	The firm's capital structure is the amount of debt and equity.
 	
-	By definition, $\text{Leverage ratio}=\frac{\text{Market equity}}{\text{Debt}}$. In our example there is one firm in two consecutive years with the same debt but an increased LR, and one type of investment project both years that has two outcomes depending on the strength of the economy that year.
+	By definition, $\text{Leverage ratio}=\frac{\text{Market equity}}{\text{Debt}}$. In our example, there is one firm in two consecutive years with the same debt but an increased LR, and one type of investment project in both years that has two outcomes depending on the strength of the economy that year.
 	Debt is risk-free and so has the same return (5\%) in both states.
 	The project has a net value of \$$-100$ or \$$300$ in the weak and the strong economies, respectively.
 	Income that does not go to debt holders goes to equity holders.
@@ -63,7 +62,7 @@ A short calculation based on Chapter 14 of~\citet{berk2007corporate} demonstrate
 
 The first statistical tests about the leverage effect were probably done in~\citet{Christie1982}.
 There, the price $S$ is modelled as a diffusion process, and the instantaneous volatility is $\lambda S^\theta$, with $\lambda>0$ and $\theta$ being model parameters.
-A negative $\theta$ means that if $S$ is decreasing then the volatility is increasing, which is the leverage effect.
+Thus, a negative $\theta$ means that if $S$ is decreasing then the volatility is increasing, which is the leverage effect.
 Evidence was found for the existence of the leverage effect, and also for its strong relationship with LR, on a dataset of 379 firms.
 
 However, a universally accepted explanation still does not exist.
@@ -81,6 +80,6 @@ Later, \citet{Christensen2015} were probably the first ones to check the time-de
 Using a GARCH-type model, they found that the effect is significantly stronger throughout crises in the S\&P500 index.
 
 We do not know the roots of the leverage effect.
-Since I do not want to filter out any of the possibilities, I will base my research in this master thesis on stock prices and not on indices.
+Since we do not want to filter out any of the possibilities, we will base our research in this master thesis on stock prices and not on indices.
 The reason is that the LR hypothesis is only interpretable for single firms and their stocks, and the market-based and behavioural hypotheses are interpretable for both stocks and indices.
 Finally, based on the comparison of GARCH and SV models above, since efficient algorithms are already available, the latter is preferred due to the better in-sample-fit.

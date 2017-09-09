@@ -93,7 +93,7 @@ samples %>%
   ylab("Density") +
   scale_fill_manual("", values = c("Approximate posterior" = "purple", "Prior" = "gray", "Posterior" = "blue")) +
   scale_color_manual("", values = c("Simulated" = "red")) +
-  ggtitle(expression(paste(rho, " simulated value and densities")))
+  ggtitle(expression(paste(rho, " prior and posterior densities, and simulated value")))
 dev.off()
 
 ggplot(samples %>% filter(Data.ind == dataind, Param == "Rho"), aes(x = Value)) +

@@ -1,8 +1,8 @@
-\section{Simulation study}
+\section{Implementation}
 
 \citet{Nakajima2009} developed and published a software that was used for their calculations using SV with leverage~\citep{nakajima2009code}.
 However, that software was written in the proprietary Ox language, which is only freely available with limited features for academic and teaching purposes~\citep{doornik2009object}.
-Apart from investigating the behaviour of leverage, this master thesis also partly aimed at providing a freely available solution for fitting SV with leverage.
+Thus, apart from investigating the behaviour of leverage, this master thesis also partly aims at providing a freely available solution for fitting SV with leverage.
 This section provides details and tests about our implementation, which will be published under the GNU GPLv3 License~\citep{gplv3}.
 In the meantime, the software is available upon request from the author.
 
@@ -41,11 +41,11 @@ The simulated true values used here are similar to the ones found in the literat
 Variance is usually highly persistent and has a mean about $\exp(-9/2)\approx 1\%$, these are encoded both in the simulated value and the prior.
 The chosen prior for $\sigma^2$ has mean 0.05 and standard deviation 0.1, so the prior is not too far from the simulated value.
 The latent vector is initialised by $h_1$, and its prior is chosen to be the stationary distribution of the AR(1) process that models $\bm h$.
-Finally, we check a wide range of $\rho$ values, and the prior is intended to be non-informative.
+Finally, we check a wide range of $\rho$ values, and $\rho$'s prior is intended to be non-informative.
 
 The simulation was based on model~\eqref{form:orig_model}.
 All the parameters and $h_1$ need to be initialised, and a realisation of the two white-noise processes has to be generated.
-Finally, by plugging in the model we acquire $\bm h$ and $\bm y$ as well.
+Finally, after substituting the parameters and the errors into the model, $\bm h$ and $\bm y$ are acquired.
 
 Figure~\ref{fig:simdata} illustrates the simulated dataset, the price process and the latent volatility process, with three chosen values of $\rho$.
 It also demonstrates how the different correlation signs affect the directly observable relationship.
@@ -53,18 +53,21 @@ High values of $\rho$ make the price process and the volatility do mirrored chan
 
 Figure~\ref{fig:volatility} presents how the posterior variance fits the simulated variance.
 In general, comovement of the posterior median with the simulated values is observed, and stronger correlation seemingly brings better fit.
-That result is not surprising since there is less information in the directly measured return series about the variance when correlation is low.
+That result is not surprising since, intuitively, there is less information in the directly measured return series about the variance when correlation is low.
 
 There are three distributions corresponding to each parameter in the current estimation method: the prior, the approximate posterior and the corrected posterior.
 Figure~\ref{fig:rhodensities} shows these and the simulated value for $\rho$.
-For low absolute values the correction outlined in section~\ref{sec:reweight} has quite low impact, the difference is invisible on the plot, but it is larger for more extreme $\rho$.
-Interestingly, the posterior is closer to the simulated value for negative $\rho$, but the ``true'' value is significant in each case.
+For low absolute values, the correction outlined in Section~\ref{sec:reweight} has quite low impact, the difference is invisible on the plot, but it is larger for more extreme $\rho$.
+Although the ``true'' value is in the 5\%-95\% credible interval in each case, the posterior is closer to the simulated value for negative $\rho$.
 
 \begin{figure}
 	\thisfloatpagestyle{empty}
 	\centering
 	\includegraphics[width=\linewidth]{simulations/data-plot.pdf}
-	\caption[Simulated price process and standard deviation]{Simulated price process scaled to 0.03 and its return's standard deviation. With high negative correlation (top) the price process and the volatility move to the opposite direction; with no correlation (middle) there is no visible pattern; with high positive correlation (bottom) the price process and the volatility move together.}
+	\caption[Simulated price process and standard deviation]{Simulated price process scaled to 0.03 and its return's standard deviation.
+		Top: with high negative correlation, the price process and the volatility move to the opposite direction.
+		Middle: with no correlation, there is no visible pattern.
+		Bottom: with high positive correlation, the price process and the volatility move together.}
 	\label{fig:simdata}
 \end{figure}
 
@@ -78,6 +81,6 @@ Interestingly, the posterior is closer to the simulated value for negative $\rho
 \begin{figure}
 	\centering
 	\includegraphics[width=\linewidth]{simulations/rho-densities.pdf}
-	\caption[Prior, approximate and corrected posterior and simulated $\rho$]{Prior, approximate and corrected posterior distributions and the simulated value for $\rho$.}
+	\caption[Prior, approximate and true posteriors, and simulated $\rho$]{Prior, approximate and corrected posterior distributions, and the simulated value for $\rho$.}
 	\label{fig:rhodensities}
 \end{figure}

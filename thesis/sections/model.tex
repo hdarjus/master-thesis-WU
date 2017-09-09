@@ -5,7 +5,7 @@
 
 The Stochastic Volatility model was introduced in the seminal work of~\citet{Taylor1982}.
 By choosing SV, one aims at capturing time varying and seasonal volatility using an AR(1) process.
-The model used in this thesis is the Stochastic Volatility with Leverage, which, additional to the AR(1) process, also models the leverage effect by letting the stock return and the increment of the log variance have a constant correlation.
+The model used in this thesis is the Stochastic Volatility with leverage, which, additional to the AR(1) process, also models the leverage effect by letting the stock return and the increment of the log variance have a constant correlation.
 
 \subsection{Formulation}
 
@@ -38,7 +38,7 @@ The first equation in~\eqref{form:orig_model} is not linear in $h_t$, which make
 d_t &=I(y_t\ge0)-I(y_t<0), \qquad\text{$y_t$'s sign,} \\
 \ets &=\log(\varepsilon^2_t),
 \end{align*}
-thus knowing $y_t$ is equivalent to knowing the pair $(\yts, d_t)$\footnote{Except for the case $\{y_t=0\}$, which is a null set in the model, and it causes identifiability issues for $h_t$. In practice, we use $\yts =\log(y^2_t+\epsilon)$ with some small $\epsilon$ for robustness.}. By storing $d_t$ and applying $x\mapsto\log(x^2)$ to the first equation of~\eqref{form:orig_model} we get the linearised form,
+thus knowing $y_t$ is equivalent to knowing the pair $(\yts, d_t)$\footnote{Except for the case $\{y_t=0\}$, which is a null set in the model, and it causes identifiability issues for $h_t$. In practice, $\yts =\log(y^2_t+\epsilon)$ is used with some small $\epsilon$ for robustness.}. By storing $d_t$ and applying $x\mapsto\log(x^2)$ to the first equation of~\eqref{form:orig_model} we get the linearised form,
 \begin{align}
 \begin{split}\label{form:lin_model}
 \yts & = h_t+\ets, \\
@@ -53,7 +53,7 @@ The SV model with leverage was formulated differently in~\citet{Jacquier2004}, w
 A comparison provided in~\citet{yu2005leverage} revealed that model~\eqref{form:orig_model} is more attractive as it is an Euler approximation to the log-normal Ornstein--Uhlenbeck process.
 Hence, the method that fits~\eqref{form:orig_model} also fits the corresponding continuous time process with discretely sampled data.
 Moreover, in the alternative specification, $y_t$ is not a martingale difference sequence, and $\rho$ has two roles: leverage and the skewness of $y_t\mid y_1,\dots,y_{t-1}$, which makes it more difficult to interpret its value.
-Finally, an empirical comparison also showed the model by~\citet{Jacquier2004} to be inferior to~\ref{form:orig_model}.
+Finally, an empirical comparison also showed the model by~\citet{Jacquier2004} to be inferior to~\eqref{form:orig_model}.
 For these reasons, we use~\eqref{form:orig_model} in the paper at hand.
 
 \subsection{Estimation without leverage}
@@ -68,7 +68,8 @@ In order to obtain an ML estimate for $(\phi,\sigma^2,\rho,\mu)$, we need to eva
 This is unfortunately difficult due to the non-linear dependence between $y_t$ and $h_t$, or, in the linear form, due to the non-Gaussian error term $\ets$.
 
 The issue of non-normality was resolved in~\citet{Harvey1994} using a Gaussian approximation to $\ets$, i.e.\ by matching the first two moments of the $\log(\chi_1^2)$ distribution.
-Then, in the resulting approximate model, using a Kalman filter to integrate over $\bm{h}$, a quasi-likelihood function can be calculated, and, after maximisation, a quasi-maximum likelihood estimate can be obtained.
+In the resulting approximate model, a quasi-maximum likelihood estimate can be obtained by maximising a so-called quasi-likelihood function.
+That function is the result of the application of the Kalman filter that integrates over the vector $\bm{h}$.
 This estimator is consistent and asymptotically normally distributed, but it has bad performance in small samples because the $\ets$ is poorly approximated by the normal distribution~\citep{Kim1998}.
 
 \subsubsection{Bayesian approach}
@@ -76,7 +77,7 @@ This estimator is consistent and asymptotically normally distributed, but it has
 The lack of a closed form likelihood function also means that there are no closed form posteriors for the model.
 This suggests the usage of Markov chain Monte Carlo algorithms (MCMC), which, with the help of Markov chains and Bayes' theorem, make it possible to draw samples from the posterior distribution of the latent variables and the parameters.
 With enough such samples we get a picture of these distributions.
-For an introduction, see, e.g.,~\citet{Geyer2011} or Section~\ref{sec:estimlev} of the paper at hand.
+For an introduction, see, e.g.,~\citet{Geyer2011}.
 
 In~\citet{Kim1998}, two different Bayesian ideas were compared for SV without leverage based on how the latent variables are sampled.
 A single move (one-at-a-time volatility update) sampler was introduced first. It draws $h_t$ from $h_t\mid\bm{h}_{-t},\bm{y},\phi,\sigma^2,\mu$ one by one, where $\bm{h}_{-t}$ is $\bm{h}$ excluding $h_t$.
@@ -96,14 +97,33 @@ Finally, due to its better sampling efficiency, the multi-move sampler was chose
 
 \subsubsection{Bivariate normal approximation}
 
+\begin{table}[t!]
+	\centering
+	\begin{tabular}{cccccc}
+		$j$                       & $p_j$    & $m_j$      & $v_j^2$ & $a_j$    & $b_j$    \\ \hline
+		\multicolumn{1}{l|}{1}  & 0.00609 & 1.92677   & 0.11265                & 1.01418 & 0.50710 \\
+		\multicolumn{1}{l|}{2}  & 0.04775 & 1.34744   & 0.17788                & 1.02248 & 0.51124 \\
+		\multicolumn{1}{l|}{3}  & 0.13057 & 0.73504   & 0.26768                & 1.03403 & 0.51701 \\
+		\multicolumn{1}{l|}{4}  & 0.20674 & 0.02266   & 0.40611                & 1.05207 & 0.52604 \\
+		\multicolumn{1}{l|}{5}  & 0.22715 & -0.85173  & 0.62699                & 1.08153 & 0.54076 \\
+		\multicolumn{1}{l|}{6}  & 0.18842 & -1.97278  & 0.98583                & 1.13114 & 0.56557 \\
+		\multicolumn{1}{l|}{7}  & 0.12047 & -3.46788  & 1.57469                & 1.21754 & 0.60877 \\
+		\multicolumn{1}{l|}{8}  & 0.05591 & -5.55246  & 2.54498                & 1.37454 & 0.68728 \\
+		\multicolumn{1}{l|}{9}  & 0.01575 & -8.68384  & 4.16591                & 1.68327 & 0.84163 \\
+		\multicolumn{1}{l|}{10} & 0.00115 & -14.65000 & 7.33342                & 2.50097 & 1.25049
+	\end{tabular}
+	\caption{Constants of the bivariate approximation~\citep{Omori2007}.}
+	\label{tab:constants}
+\end{table}
+
 Due to the correlation between $\varepsilon_t$ and $\eta_t$, approximating $\ets$ affects $\eta_t$ as well.
 Thus,~\citet{Omori2007} used a mixture of bivariate normals as an approximation to the conditional distribution of the pair $(\ets, \eta_t)$.
 Let $(\xi_t,\nu_t\mid d_t,\rho,\sigma)$ denote the approximate random variable to $(\ets,\eta_t\mid d_t,\rho,\sigma)$, and let $\pi(X)$ denote the density of the random variable $X$ and $\pi(X=x)$ denote its value at $x$.
 
-In order to derive the approximation, we first decompose the bivariate conditional density and then approximate the parts separately,
+In order to derive the approximation, the bivariate conditional density is decomposed first, and then the parts are separately approximated,
 \begin{align}
-\pi(\ets,\eta_t\mid d_t,\rho,\sigma) &= \pi(\ets\mid d_t,\rho,\sigma)\cdot \pi(\eta_t\mid\ets,d_t,\rho,\sigma),\nonumber \\
-&= \pi(\ets)\cdot \pi(\eta_t\mid\ets,d_t,\rho,\sigma)\label{eq:decomp},
+\pi(\ets,\eta_t\mid d_t,\rho,\sigma) &= \pi(\ets\mid d_t,\rho,\sigma) \pi(\eta_t\mid\ets,d_t,\rho,\sigma)\nonumber \\
+&= \pi(\ets) \pi(\eta_t\mid\ets,d_t,\rho,\sigma)\label{eq:decomp},
 \end{align}
 because the marginal of $\ets$ is independent of $d_t$, $\rho$, and $\sigma$.
 \citet{Omori2007} now used an improved normal mixture approximation to the marginal $\pi(\ets)$ with $K=10$,
@@ -111,7 +131,8 @@ because the marginal of $\ets$ is independent of $d_t$, $\rho$, and $\sigma$.
 \pi(\xi_t)\triangleq\sum_{j=1}^{10}p_j\pi\left(\mathcal{N}\left(m_j,v_j^2\right)\right),
 \end{equation}
 where $\pi\left(\mathcal{N}\left(m_j,v_j^2\right)\right)$ denotes the normal density with mean $m_j$ and variance $v_j^2$.
-The constants $m_j$, $p_j$ and $v_j$ are specified in Table~\ref{tab:constants}.
+The constants $m_j$, $p_j$, and $v_j$ were found by matching the first four moments of $\ets$ and $\exp(\ets)$ with the moments of $\xi_t$ and $\exp(\xi_t)$, and then applying a non-linear optimiser to minimise the distance of the densities~\citep{Kim1998}.
+The constants are specified in Table~\ref{tab:constants}.
 
 The conditional distribution of $\eta_t$ is
 \begin{equation*}
@@ -127,64 +148,23 @@ These are mitigated by a linear approximation
 \exp(\xi_t/2)\approx\exp(m_j/2)(a_j+b_j(\xi_t-m_j))
 \end{equation}
 when the $j$th mixture component is used for $\xi_t$, i.e.\ $\mathcal{N}(m_j,v_j^2)$.
-The constants $a_j$ and $b_j$ were found by minimising the mean square norm 
+The constants $a_j$ and $b_j$ are the results of the mean square norm minimisation,
 \begin{equation*}
 \E{\left[\exp(\xi_t/2)-\exp(m_j/2)(a+b(\xi_t-m_j))\right]^2}
 \end{equation*}
-w.r.t. $a$ and $b$, separately for each $j$, and they are listed in Table~\ref{tab:constants}.
+w.r.t.\ $a$ and $b$, separately for each $j$, and they are listed in Table~\ref{tab:constants}.
 
-\begin{table}[h!]
-	\centering
-	\caption{Constants of the bivariate approximation~\citep{Omori2007}.}
-	\label{tab:constants}
-	\begin{tabular}{cccccc}
-		$j$                       & $p_j$    & $m_j$      & $v_j^2$ & $a_j$    & $b_j$    \\ \hline
-		\multicolumn{1}{l|}{1}  & 0.00609 & 1.92677   & 0.11265                & 1.01418 & 0.50710 \\
-		\multicolumn{1}{l|}{2}  & 0.04775 & 1.34744   & 0.17788                & 1.02248 & 0.51124 \\
-		\multicolumn{1}{l|}{3}  & 0.13057 & 0.73504   & 0.26768                & 1.03403 & 0.51701 \\
-		\multicolumn{1}{l|}{4}  & 0.20674 & 0.02266   & 0.40611                & 1.05207 & 0.52604 \\
-		\multicolumn{1}{l|}{5}  & 0.22715 & -0.85173  & 0.62699                & 1.08153 & 0.54076 \\
-		\multicolumn{1}{l|}{6}  & 0.18842 & -1.97278  & 0.98583                & 1.13114 & 0.56557 \\
-		\multicolumn{1}{l|}{7}  & 0.12047 & -3.46788  & 1.57469                & 1.21754 & 0.60877 \\
-		\multicolumn{1}{l|}{8}  & 0.05591 & -5.55246  & 2.54498                & 1.37454 & 0.68728 \\
-		\multicolumn{1}{l|}{9}  & 0.01575 & -8.68384  & 4.16591                & 1.68327 & 0.84163 \\
-		\multicolumn{1}{l|}{10} & 0.00115 & -14.65000 & 7.33342                & 2.50097 & 1.25049
-	\end{tabular}
-\end{table}
-
-By combining~\eqref{eq:decomp},~\eqref{eq:ets},~\eqref{eq:eta} and~\eqref{eq:etslinear}, we get the final approximation
+By combining~\eqref{eq:decomp},~\eqref{eq:ets},~\eqref{eq:eta}, and~\eqref{eq:etslinear}, the final approximation is
 \begin{align*}
-\pi(\ets,\eta_t\mid d_t,\rho,\sigma) &\approx \pi(\xi_t,\nu_t\mid d_t,\rho,\sigma), \\
-&= \pi(\xi_t)\cdot \pi(\nu_t\mid\xi_t,d_t,\rho,\sigma), \\
-&= \sum_{j=1}^{10}p_j\pi(\mathcal{N}\left(m_j,v_j^2\right))\cdot \\
-&\quad\cdot\pi\left(\mathcal{N}\left(d_t\rho\sigma\exp(m_j/2)(a_j+b_j(\xi_t-m_j)),\sigma^2\left(1-\rho^2\right)\right)\right).
+\pi(\ets,\eta_t\mid d_t,\rho,\sigma) &\approx \pi(\xi_t,\nu_t\mid d_t,\rho,\sigma) \\
+&= \pi(\xi_t)\pi(\nu_t\mid\xi_t,d_t,\rho,\sigma) \\
+&= \sum_{j=1}^{10}p_j\pi\left(\mathcal{N}\left(m_j,v_j^2\right)\right)\times \\
+&\times\pi\left(\mathcal{N}\left(d_t\rho\sigma\exp(m_j/2)(a_j+b_j(\xi_t-m_j)),\sigma^2\left(1-\rho^2\right)\right)\right).
 \end{align*}
-
-\subsubsection{Correcting for misspecification}\label{sec:reweight}
-
-Let $\theta$ denote $(\sigma,\rho,\phi)$.
-By using an approximate distribution for the true $\pi(\ets,\eta_t\mid d_t,\rho,\sigma)$, we misspecified the model, and our draws for $\bm{h}$, $\theta$ and $\mu$ are from an approximate posterior density as well.
-One can correct this and produce draws from the true posterior $\pi(\bm{h},\theta,\mu\mid\bm{y})$ by calculating weights $w_k$, for all the draws $k=1,\dots,N$, and resample the sampled numbers according to the weights.
-After obtaining the error terms
-\begin{align*}
-\xi_t^k &= y_t^\ast-h_t^k, \\
-\nu_t^k &= (h_{t+1}^k-\mu^k)-\phi^k(h_t^k-\mu^k).
-\end{align*}
-Then, we compute the non-normalised weights
-\begin{equation*}
-w_k^\ast=\frac{\pi\left(\ets=\xi_t^k,\eta_t=\nu_t^k\mid d_t,\mu=\mu^k,\theta=\theta^k\right)}{\pi\left(\xi_t=\xi_t^k,\nu_t=\nu_t^k\mid d_t,\mu=\mu^k,\theta=\theta^k\right)},
-\end{equation*}
-Finally, we normalise the weights
-\begin{equation*}
-w_k=\frac{w_k^\ast}{\sum_{l=1}^{T}w_l^\ast}
-\end{equation*}
-to get the probabilities that we use for resampling the existing draws.
-\citet{Omori2007} found that the weights have quite small variance which makes the effect of this correction procedure modest.
-That is in line with the demonstrated high precision of the approximate bivariate distribution.
 
 \subsubsection[State space form]{Conditional Gaussian state space form}
 
-Due to the normal mixture approximation, a new variable $\bm s=(s_1,\dots,s_T)$ has been introduced to the model, the vector of mixture components, one component for each time point. Given $s_t=j$, we end up with a linear model with normal errors,
+Due to the normal mixture approximation, a new variable $\bm s=(s_1,\dots,s_T)$ is included in the model, the vector of mixture components. There is one component $s_t\in\{1,\dots,K\}$ for each time point $t$. Given $s_t=j$, linear model with normal errors is obtained,
 \begin{equation}
 \begin{alignedat}{2}\label{form:appr_model}
 \yts & = h_t+\xi_t, && \quad t=1,\dots,T, \\
@@ -205,7 +185,7 @@ b_jv_j\gamma_t^j && \sigma\sqrt{1-\rho^2}
 z_t^1 \\
 z_t^2
 \end{pmatrix}, && \quad t=1,\dots,T-1, \\
-\xi_T &\overset{d}{=} m_j+v_jz_t^1, \\
+\xi_T &\overset{d}{=} m_j+v_jz_T^1, \\
 \begin{pmatrix}
 z_t^1 \\
 z_t^2
@@ -213,9 +193,9 @@ z_t^2
 &\sim\text{ i.i.d. }\mathcal{N}_2\left(\bm{0},\bm{I_2}\right), && \quad t=1,\dots,T,
 \end{alignedat}
 \end{equation}
-where $\gamma_t^j\triangleq d_t\rho\sigma\exp(m_j/2)$ and ``$\overset{d}{=}$'' means equivalence in distribution. Note that $(\xi_t,\nu_t)$ depends on $d_t,\rho,\sigma$ and $s_t$.
+where $\gamma_t^j\triangleq d_t\rho\sigma\exp(m_j/2)$ and ``$\overset{d}{=}$'' means equivalence in distribution. Note that $(\xi_t,\nu_t)$ depends on $d_t,\rho,\sigma$, and $s_t$.
 
-In order to reduce the estimation of model~\eqref{form:appr_model} to the estimation of a well-known framework, we reformulate the first two equations of~\eqref{form:appr_model} equivalently as
+In order to reduce the estimation of model~\eqref{form:appr_model} to the estimation of a well-known framework, the first two equations of~\eqref{form:appr_model} are reformulated equivalently as
 \begin{equation}
 \begin{alignedat}{2}\label{form:gauss_model}
 \begin{pmatrix}
@@ -236,8 +216,8 @@ h_t \\
 y_T^\ast &= h_T+\xi_T.
 \end{alignedat}
 \end{equation}
-Since $(\xi_t,\nu_t,0)$ is a (degenerate) normal white-noise series, setting $\mu\equiv\tilde{\mu}_t$ and assuming a normal prior for $\mu$ and $h_1\mid(\mu,\sigma,\phi)$, model~\eqref{form:gauss_model} is a linear Gaussian state space (GSS) with hidden state $(h_t,\tilde{\mu}_t)$.
-We copy the priors of the initial latent state used by~\citet{Omori2007}, for arbitrary constant $\sigma_0$,
+The error $(\xi_t,\nu_t,0)$ is a (degenerate) normal white-noise series. Hence, by assuming a Gaussian prior for $\left(h_1,\tilde\mu_1\right)$, model~\eqref{form:gauss_model} becomes a linear Gaussian state space (GSS) with hidden state $(h_t,\tilde{\mu}_t)$.
+We copy the priors of the initial latent state used by~\citet{Omori2007}, for arbitrary constants $\mu_0$ and $\sigma_0$,
 \begin{equation*}
 \begin{pmatrix}
 h_1 \\
@@ -254,10 +234,36 @@ h_1 \\
 \end{pmatrix}
 \right).
 \end{equation*}
-Note that in~\eqref{form:gauss_model} $\tilde{\mu}_t$ is constant through $t$. \citet{Omori2007} needed this ``trick'' with the inclusion of $\mu$ in the hidden state in order to match the general form of models that can be fitted via the method in~\citet{de1995simulation}.
+Note that $\tilde{\mu}_t$ is constant in~\eqref{form:gauss_model} through $t$, and $\mu\equiv\tilde{\mu}_t$ is used to obtain $\mu$ from~\eqref{form:gauss_model}.
+This ``trick'', the inclusion of $\mu$ in the hidden state, was the key in~\citet{Omori2007} for showing that~\eqref{form:gauss_model} is a special case of the model specified by~\citet{de1995simulation}.
+The algorithm used by~\citet{Omori2007} and by the paper at hand is also heavily based on the algorithm defined by~\citet{de1995simulation}.
+
+\subsubsection{Correcting for misspecification}\label{sec:reweight}
+
+Let $\theta$ denote $(\sigma,\rho,\phi)$.
+By using an approximate distribution for the true $\pi(\ets,\eta_t\mid d_t,\rho,\sigma)$, the model is misspecified, and the draws of $\bm{h}$, $\theta$, and $\mu$ are from an approximate posterior density as well.
+This can be corrected, and draws can be produced from the true posterior $\pi(\bm{h},\theta,\mu\mid\bm{y})$.
+First, the weights $w_k$ need to be calculated for all the draws $k=1,\dots,N$, and then the original sample needs to be resampled using $w_k$ as probabilities.
+After obtaining the error terms
+\begin{align*}
+\xi_t^k &= y_t^\ast-h_t^k, \\
+\nu_t^k &= (h_{t+1}^k-\mu^k)-\phi^k(h_t^k-\mu^k),
+\end{align*}
+the non-normalised weights are computed,
+\begin{equation*}
+w_k^\ast=\prod_{t=1}^{T}\frac{\pi\left(\ets=\xi_t^k,\eta_t=\nu_t^k\mid d_t,\mu=\mu^k,\theta=\theta^k\right)}{\pi\left(\xi_t=\xi_t^k,\nu_t=\nu_t^k\mid d_t,\mu=\mu^k,\theta=\theta^k\right)},
+\end{equation*}
+Finally, we normalise the weights
+\begin{equation*}
+w_k=\frac{w_k^\ast}{\sum_{l=1}^{T}w_l^\ast}
+\end{equation*}
+to get the probabilities that we use for resampling the existing draws.
+\citet{Omori2007} found that the weights have quite small variance, which makes the effect of this correction procedure modest.
+That is in line with the demonstrated high precision of the approximate distribution~\citep{Omori2007}.
 
 \subsection{Estimation with leverage}\label{sec:estimlev}
 
+\comment{
 \subsubsection[MCMC algorithms]{Markov Chain Monte Carlo algorithms}
 
 The term Monte Carlo is used for the simulation of random processes, while the term Markov chain denotes sequences of random variables $X_1,X_2,\dots$ for which, for each $n\in\mathbb{N}$, the conditional distribution of $X_{n+1}$ given $X_1,\dots,X_n$ only depends on $X_n$ (it is ``memoryless'').
@@ -268,7 +274,6 @@ In practice, we cannot prove the conditions for the existence of $\pi$.
 Instead we only have the output of the algorithm, a sequence of realisations, from which we can try to imply that we have a converged chain using, e.g., visualisations and autocorrelation functions.
 \citet{Geyer2011} mentions the issues that pop up here and argues about some solution ideas.
 
-\comment{
 	These transition probabilities are called stationary if they don't depend on $n$.
 	
 	For the majority of the Markov chain Monte Carlo (MCMC) algorithms stationary transition probability distributions are needed.
@@ -289,29 +294,29 @@ After initialising all the latent variables and parameters, there are three main
 	\end{enumerate}
 	\item Goto Step~\ref{enum:draw-s}.
 \end{enumerate}
-Steps~\ref{enum:draw-s} and~\ref{enum:draw-other} are interchangeable in the algorithm but~\ref{enum:draw-theta} and~\ref{enum:draw-latent} are not because the former's by-products are needed for the latter.
+Steps~\ref{enum:draw-s} and~\ref{enum:draw-other} are interchangeable in the algorithm, but steps~\ref{enum:draw-theta} and~\ref{enum:draw-latent} are not because the former's by-products are needed for the latter.
 The steps are detailed below based on~\citet{Omori2007}.
 
-If the Markov chain specified by the algorithm above has an equilibrium distribution, then it is an approximation to $\bm h,\bm s,\theta,\mu\mid\bm y$, the posterior distribution of the parameters and latent variables, and it is the true one after the reweighting scheme (Section~\ref{sec:reweight}).
-So by repeating the steps sufficiently many times, after ``reaching convergence'' we obtain draws from the posterior.
-With such a sample we can estimate the posterior mean or any other point estimate, calculate credible intervals or transforms of the distribution.
+If the Markov chain specified by the algorithm above has an equilibrium distribution, then it is an approximation to the posterior $\bm h,\bm s,\theta,\mu\mid\bm y$, and it is the true one after the reweighting scheme (Section~\ref{sec:reweight}).
+So by repeating the steps sufficiently many times, after ``reaching convergence'', draws from the posterior are obtained.
+With such a sample any point estimate, credible intervals, or transformations of the distribution can be estimated.
 
 \subsubsection{Drawing the mixture states}
 
-This is the easiest part because we can derive the posterior probabilities $\pi(s_t=j\mid\bm{y},\bm{h},\mu,\sigma,\rho,\phi)$, $j=1,\dots,K$, directly.
-We define
+A closed form can be derived for $\pi(s_t=j\mid\bm{y},\bm{h},\mu,\sigma,\rho,\phi)$, $j=1,\dots,K$.
+Let
 \begin{align*}
 \hat\xi_t &\triangleq y_t^\ast-h_t, \\
 \hat{\nu}_t &\triangleq h_{t+1}-\mu-\phi(h_t-\mu), \\
-\gamma_t^j &\triangleq d_t\rho\sigma\exp(m_j/2),
+\gamma_t^j &\triangleq d_t\rho\sigma\exp(m_j/2).
 \end{align*}
-then, based on~\citet{Omori2007} with $K=10$, for $t=1,\dots,T-1$ and $j=1,\dots,10$,
+Then, based on~\citet{Omori2007} with $K=10$, for $t=1,\dots,T-1$ and $j=1,\dots,10$,
 \begin{equation}
 \begin{aligned}[1]
-\pi\left(s_t=j\mid\bm{y},\bm{h},\mu,\theta\right) &\propto P\left(s_t=j\right)\cdot\pi\left(\xi_t=\hat\xi_t\mid s_t=j\right)\cdot \\
-&\quad\cdot\pi\left(\nu_t=\hat\nu_t\mid\xi_t=\hat\xi_t,s_t=j,h_{t+1},h_t,\mu,\theta\right), \\
+\pi\left(s_t=j\mid\bm{y},\bm{h},\mu,\theta\right) &\propto P\left(s_t=j\right)\pi\left(\xi_t=\hat\xi_t\mid s_t=j\right)\times \\
+&\times\pi\left(\nu_t=\hat\nu_t\mid\xi_t=\hat\xi_t,s_t=j,h_{t+1},h_t,\mu,\theta\right), \\
 \pi\left(s_T=j\mid\bm{y},\bm{h},\mu,\theta\right)
-&\propto P\left(s_T=j\right)\cdot\pi\left(\xi_T=\hat\xi_T\mid s_T=j\right)\cdot 1,
+&\propto P\left(s_T=j\right)\pi\left(\xi_T=\hat\xi_T\mid s_T=j\right)\times 1,
 \end{aligned}
 \end{equation}
 where
@@ -324,43 +329,42 @@ and
 \pi\left(\nu_t=\hat\nu_t\mid\xi_t=\hat\xi_t,s_t=j,h_{t+1},h_t,\mu,\theta\right) \propto \\
 \propto \exp\left(-\frac{\left(\hat{\nu}_t-\left(\gamma_t^j\left[a_j+b_j\left(\hat\xi_t-m_j\right)\right]\right)\right)^2}{2\sigma^2\left(1-\rho^2\right)}\right).
 \end{multline*}
-This way we get values that are just proportional to the posterior probabilities, hence we have to normalise these values so that they sum to 1.
+This way, values proportional to the posterior probabilities are obtained, so they need to be normalised.
 We can use the inverse sampling method to draw $\bm s\mid\bm{y},\bm{h},\mu,\sigma,\rho,\phi$~\citep{grinstead2012introduction}.
 
 \subsubsection{Drawing $\rho,\sigma,\phi$}
 
 The remaining two steps are more involved and based on~\citet{de1995simulation}.
-They are detailed and derived for SV with leverage in~\citet{Nakajima2009}, where SV with leverage is extended and it features jumps and t distributed residuals.
+They are detailed and derived for SV with leverage in~\citet{Nakajima2009}, where SV with leverage is extended to jumps and t distributed residuals.
 
 In this step, the Metropolis-Hastings (MH) algorithm is used to obtain a draw from $\theta\mid\bm{y}^\ast,\bm{d},\bm s$.
-Three things are needed for MH,
-\begin{itemize}
-	\item Calculate the true density $\pi(\theta\mid\bm{y}^\ast,\bm{d},\bm s)$ up to a constant factor,
-	\item A proposal density $g(\theta\mid\bm{y}^\ast,\bm{d},\bm s)$ whose support is a superset of the true support,
-	\item A proposed new $\theta_\ast$ from $g(\theta\mid\bm{y}^\ast,\bm{d},\bm s)$.
-\end{itemize}
-It is important that the evaluation of and sampling from the proposal density is efficient.
-Bayes' theorem helps with the first point by decomposing the posterior into the likelihood and the prior: $\pi(\theta\mid\bm{y}^\ast,\bm{d},\bm s)\propto\pi(\bm{y}^\ast\mid\theta,\bm{d},\bm s)\pi(\theta)$.
-The likelihood can be computed using the Kalman filter, the prior is usually chosen to be from a well-known family.
+MH is useful when the posterior density can be evaluated up to a constant factor.
+That can be done using Bayes' theorem, by factoring the posterior into the likelihood, the prior, and a constant factor: $\pi(\theta\mid\bm{y}^\ast,\bm{d},\bm s)\propto\pi(\bm{y}^\ast\mid\theta,\bm{d},\bm s)\pi(\theta)$.
+The prior is usually chosen to be from a well-known family, and, based on~\cite{Nakajima2009}, the likelihood can be computed using the Kalman filter.
 
-Given everything above, a MH step in the $n$th loop
-\begin{enumerate}
-	\item Produces a candidate $\theta_\ast$ from $g(\theta\mid\bm{y}^\ast,\bm{d},\bm s)$.
-	\item The new sample will be either the current value $\theta_n$ or the candidate $\theta_\ast$. The so-called acceptance ratio drives the decision:
-	\begin{equation*}
-	\text{AR}=\frac{\pi(\bm{y}^\ast\mid\theta_\ast,\bm{d},\bm s)\pi(\theta_\ast)}{\pi(\bm{y}^\ast\mid\theta_n,\bm{d},\bm s)\pi(\theta_n)}\frac{g(\theta_n\mid\bm{y}^\ast,\bm{d},\bm s)}{g(\theta_\ast\mid\bm{y}^\ast,\bm{d},\bm s)}
-	\end{equation*}
-	\item Finally, $\theta_\ast$ is accepted with probability $\min\left\{\text{AR},1\right\}$, and $\theta_{n+1}=\theta_\ast$.
-	Otherwise $\theta_{n+1}=\theta_n$ is the new state again.
-\end{enumerate}
+A proposal density $g(\theta\mid\bm{y}^\ast,\bm{d},\bm s)$ is needed for MH as well, whose support is a superset of the true posterior's support.
+It is also important that the evaluation of and sampling from the proposal density are efficient.
+
+Given everything above, an MH step in the $n$th loop first produces a candidate $\theta_\ast$ from $g(\theta\mid\bm{y}^\ast,\bm{d},\bm s)$.
+Then, the new sample $\theta_{n+1}$ is chosen randomly from among the current value $\theta_n$ and the candidate $\theta_\ast$.
+The so-called acceptance ratio drives the decision,
+\begin{equation*}
+\text{AR}=\frac{\pi(\bm{y}^\ast\mid\theta_\ast,\bm{d},\bm s)\pi(\theta_\ast)}{\pi(\bm{y}^\ast\mid\theta_n,\bm{d},\bm s)\pi(\theta_n)}\frac{g(\theta_n\mid\bm{y}^\ast,\bm{d},\bm s)}{g(\theta_\ast\mid\bm{y}^\ast,\bm{d},\bm s)}
+\end{equation*}
+Finally, $\theta_\ast$ is accepted with probability $\min\left\{\text{AR},1\right\}$, and $\theta_{n+1}=\theta_\ast$.
+Otherwise $\theta_{n+1}=\theta_n$ remains the state.
 
 \citet{Nakajima2009} chose the proposal to be $\mathcal{N}(c, C)$ truncated to the region $R=\left\{(\sigma,\rho,\phi)\mid\sigma>0,-1<\rho<1,-1<\phi<1\right\}$.
-The mean vector $c$ and the covariance matrix $C$ are calculated in each loop in a way that the proposal's log density is the second order Taylor expansion of the true log density around the true log density's mode.\footnote{
-	Even though we can only evaluate the true posterior density up to a (positive) constant factor, this works here because the mode is the same, and we differentiate the log density for the Taylor expansion, i.e.\ constant multipliers vanish.}
+The mean vector $c$ and the covariance matrix $C$ are calculated in each loop such that the proposal's log density is the second order Taylor expansion of the true log density around the true log density's mode.\footnote{
+	Even though the true posterior density can only be evaluated up to a (positive) constant factor, the Taylor approximation can be still calculated.
+	The reason is that the mode is invariant under positive scaling, and differentiation is only applied to the log density, i.e.\ constant multipliers vanish.}
 More precisely,
 \begin{align*}
 c &= \hat{\theta}+Cv, \\
-C^{-1} &= -\frac{\partial^2\log\pi(\theta\mid\bm{y}^\ast,\bm{d},\bm s)}{\partial\theta\partial\theta^\prime}, \\
+C^{-1} &= -\frac{\partial^2\log\pi(\theta\mid\bm{y}^\ast,\bm{d},\bm s)}{\partial\theta\partial\theta^\prime},
+\end{align*}
+where
+\begin{align*}
 v &= \frac{\partial\log\pi(\theta\mid\bm{y}^\ast,\bm{d},\bm s)}{\partial\theta}, \\
 \hat{\theta} &= \text{arg}\max_\theta\pi(\theta\mid\bm{y}^\ast,\bm{d},\bm s).
 \end{align*}
